@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    container_name: partyup
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - UPLOADTHING_SECRET=${UPLOADTHING_SECRET}
+      - UPLOADTHING_APP_ID=${UPLOADTHING_APP_ID}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: pnpm dev
+    restart: unless-stopped
