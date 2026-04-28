@@ -1,4 +1,4 @@
-import { db } from '@/src/server/db/index'
+import { db } from '@/server/db/index'
 
 async function seed() {
   console.log('🌱 Seeding database...')
