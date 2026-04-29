@@ -1,11 +1,12 @@
-import { pgTable,uuid,text,boolean,timestamp,} from 'drizzle-orm/pg-core'
-
-// ── Better Auth tables ─────────────────────────────────────────────────────
-// These four tables are required by Better Auth.
-// Do not rename the columns — Better Auth expects these exact names.
+import {
+  pgTable,
+  text,
+  boolean,
+  timestamp,
+} from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
@@ -15,8 +16,8 @@ export const users = pgTable('users', {
 })
 
 export const sessions = pgTable('sessions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
+  id: text('id').primaryKey(),
+  userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   token: text('token').notNull().unique(),
@@ -28,8 +29,8 @@ export const sessions = pgTable('sessions', {
 })
 
 export const accounts = pgTable('accounts', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
+  id: text('id').primaryKey(),
+  userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   accountId: text('account_id').notNull(),
@@ -37,13 +38,13 @@ export const accounts = pgTable('accounts', {
   accessToken: text('access_token'),
   refreshToken: text('refresh_token'),
   accessTokenExpiresAt: timestamp('access_token_expires_at'),
-  password: text('password'), // Argon2 hashed by Better Auth
+  password: text('password'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
 export const verifications = pgTable('verifications', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
@@ -51,11 +52,9 @@ export const verifications = pgTable('verifications', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
-// ── Core tables ────────────────────────────────────────────────────────────
-
 export const events = pgTable('events', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  hostId: uuid('host_id')
+  id: text('id').primaryKey(),
+  hostId: text('host_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
@@ -68,9 +67,6 @@ export const events = pgTable('events', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
-
-// ── Type exports ───────────────────────────────────────────────────────────
-// Use these types throughout the app instead of writing them manually.
 
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert

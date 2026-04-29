@@ -4,7 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { signIn } from '@/lib/auth-client'
+import { loginSchema, type LoginFormData } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,25 +22,27 @@ import {
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError] = useState('')
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  async function onSubmit(data: LoginFormData) {
+    setServerError('')
 
     const { error } = await signIn.email({
-      email,
-      password,
+      email: data.email,
+      password: data.password,
     })
 
     if (error) {
-      setError('Invalid email or password. Please try again.')
-      setLoading(false)
+      setServerError('Invalid email or password. Please try again.')
       return
     }
 
@@ -45,35 +50,39 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center ">
+    <Card className="bg-blue-200">
+      <CardHeader className="text-center">
         <div className="flex justify-center mb-2">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <span className="text-primary-foreground  font-bold text-lg">P</span>
+            <span className="text-primary-foreground font-bold text-lg">P</span>
           </div>
         </div>
         <CardTitle className="text-2xl">Party Time!</CardTitle>
-        <CardDescription>
-          Sign in to your account
-        </CardDescription>
+        <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className='h-12 border-green-700'
+              disabled={isSubmitting}
+              className="h-12 text-base px-4"
+              {...register('email')}
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
+          {/* Password */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
@@ -84,42 +93,48 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <div className="relative py-3">
+            <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-                className="pr-10  h-12  border-green-700"
+                disabled={isSubmitting}
+                className="h-12 text-base px-4 pr-12"
+                {...register('password')}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
-                  <EyeOff className="h-6 w-6" />
+                  <EyeOff className="h-5 w-5" />
                 ) : (
-                  <Eye className="h-6 w-6" />
+                  <Eye className="h-5 w-5" />
                 )}
               </button>
             </div>
+            {errors.password && (
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
+          {/* Server error */}
+          {serverError && (
+            <p className="text-sm text-destructive">{serverError}</p>
           )}
 
           <Button
             type="submit"
-            className="w-full"
-            disabled={loading}
+            className="w-full h-12 text-base"
+            disabled={isSubmitting}
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {isSubmitting ? 'Signing in...' : 'Sign in'}
           </Button>
+
         </form>
       </CardContent>
 
