@@ -46,7 +46,45 @@ export const registerSchema = z
     path: ['confirmPassword'],
   })
 
+  export const createEventSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Event name is required')
+    .min(3, 'Event name must be at least 3 characters')
+    .max(100, 'Event name must be less than 100 characters'),
+  description: z
+    .string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+  date: z
+    .string()
+    .min(1, 'Date is required')
+    .refine((val) => {
+      const date = new Date(val)
+      return date > new Date()
+    }, 'Event date must be in the future'),
+  location: z
+    .string()
+    .max(200, 'Location must be less than 200 characters')
+    .optional(),
+  photosEnabled: z.boolean(),
+  chatEnabled: z.boolean(),
+})
+
+// ── Invite schema ──────────────────────────────────────────────────────────
+
+export const inviteSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+})
+
+
+
 // ── Inferred types ─────────────────────────────────────────────────────────
 
 export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
+export type CreateEventFormData = z.infer<typeof createEventSchema>
+export type InviteFormData = z.infer<typeof inviteSchema>

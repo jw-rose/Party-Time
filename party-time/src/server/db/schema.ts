@@ -3,7 +3,20 @@ import {
   text,
   boolean,
   timestamp,
+  pgEnum,
 } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
+
+// ── Enums ──────────────────────────────────────────────────────────────────
+
+export const rsvpStatusEnum = pgEnum('rsvp_status', [
+  'going',
+  'maybe',
+  'declined',
+  'pending',
+])
+
+// ── Better Auth tables ─────────────────────────────────────────────────────
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -52,6 +65,8 @@ export const verifications = pgTable('verifications', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
+// ── Core tables ────────────────────────────────────────────────────────────
+
 export const events = pgTable('events', {
   id: text('id').primaryKey(),
   hostId: text('host_id')
@@ -68,7 +83,80 @@ export const events = pgTable('events', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
+export const guests = pgTable('guests', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  status: rsvpStatusEnum('status').notNull().default('pending'),
+  invitedAt: timestamp('invited_at').notNull().defaultNow(),
+  respondedAt: timestamp('responded_at'),
+})
+
+export const invites = pgTable('invites', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  createdBy: text('created_by')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+// ── Relations ──────────────────────────────────────────────────────────────
+
+export const usersRelations = relations(users, ({ many }) => ({
+  events: many(events),
+  guests: many(guests),
+  invites: many(invites),
+}))
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  host: one(users, {
+    fields: [events.hostId],
+    references: [users.id],
+  }),
+  guests: many(guests),
+  invites: many(invites),
+}))
+
+export const guestsRelations = relations(guests, ({ one }) => ({
+  event: one(events, {
+    fields: [guests.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [guests.userId],
+    references: [users.id],
+  }),
+}))
+
+export const invitesRelations = relations(invites, ({ one }) => ({
+  event: one(events, {
+    fields: [invites.eventId],
+    references: [events.id],
+  }),
+  createdBy: one(users, {
+    fields: [invites.createdBy],
+    references: [users.id],
+  }),
+}))
+
+// ── Type exports ───────────────────────────────────────────────────────────
+
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Event = typeof events.$inferSelect
 export type NewEvent = typeof events.$inferInsert
+export type Guest = typeof guests.$inferSelect
+export type NewGuest = typeof guests.$inferInsert
+export type Invite = typeof invites.$inferSelect
+export type NewInvite = typeof invites.$inferInsert
