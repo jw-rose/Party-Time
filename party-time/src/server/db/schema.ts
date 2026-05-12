@@ -111,12 +111,26 @@ export const invites = pgTable('invites', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
+export const eventPosts = pgTable('event_posts', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  authorId: text('author_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
 // ── Relations ──────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
   events: many(events),
   guests: many(guests),
   invites: many(invites),
+  posts: many(eventPosts),
 }))
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -126,6 +140,7 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   }),
   guests: many(guests),
   invites: many(invites),
+  posts: many(eventPosts),
 }))
 
 export const guestsRelations = relations(guests, ({ one }) => ({
@@ -150,6 +165,17 @@ export const invitesRelations = relations(invites, ({ one }) => ({
   }),
 }))
 
+export const eventPostsRelations = relations(eventPosts, ({ one }) => ({
+  event: one(events, {
+    fields: [eventPosts.eventId],
+    references: [events.id],
+  }),
+  author: one(users, {
+    fields: [eventPosts.authorId],
+    references: [users.id],
+  }),
+}))
+
 // ── Type exports ───────────────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect
@@ -160,3 +186,5 @@ export type Guest = typeof guests.$inferSelect
 export type NewGuest = typeof guests.$inferInsert
 export type Invite = typeof invites.$inferSelect
 export type NewInvite = typeof invites.$inferInsert
+export type EventPost = typeof eventPosts.$inferSelect
+export type NewEventPost = typeof eventPosts.$inferInsert

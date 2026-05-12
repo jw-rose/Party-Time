@@ -8,6 +8,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/tests/setup.ts'],
+    exclude: [
+      'node_modules/**',
+      '.next/**',
+      'src/tests/e2e/**',        // ← exclude Playwright tests
+    ],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', '.next/', 'src/tests/e2e/'],

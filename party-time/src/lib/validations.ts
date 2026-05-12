@@ -80,6 +80,36 @@ export const inviteSchema = z.object({
     .email('Please enter a valid email address'),
 })
 
+export const updateEventSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Event name is required')
+    .min(3, 'Event name must be at least 3 characters')
+    .max(100, 'Event name must be less than 100 characters'),
+  description: z
+    .string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+  date: z
+    .string()
+    .min(1, 'Date is required'),
+  location: z
+    .string()
+    .max(200, 'Location must be less than 200 characters')
+    .optional(),
+  photosEnabled: z.boolean(),
+  chatEnabled: z.boolean(),
+})
+
+// ── Post schema ────────────────────────────────────────────────────────────
+
+export const createPostSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'Message cannot be empty')
+    .max(1000, 'Message must be less than 1000 characters'),
+})
+
 
 
 // ── Inferred types ─────────────────────────────────────────────────────────
@@ -88,3 +118,5 @@ export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
 export type CreateEventFormData = z.infer<typeof createEventSchema>
 export type InviteFormData = z.infer<typeof inviteSchema>
+export type UpdateEventFormData = z.infer<typeof updateEventSchema>
+export type CreatePostFormData = z.infer<typeof createPostSchema>

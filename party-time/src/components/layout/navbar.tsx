@@ -32,7 +32,7 @@ export function Navbar() {
     : '?'
 
   return (
-    <nav className="border-b bg-background">
+    <nav className="border-b bg-background hidden sm:block">
       <div className="container mx-auto px-4 max-w-4xl h-16 flex items-center justify-between">
 
         {/* Logo */}

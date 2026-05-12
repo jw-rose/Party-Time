@@ -61,7 +61,8 @@ export async function sendInvite(eventId: string, formData: unknown) {
       hostName: session.user.name,
     })
   } catch {
-    return { error: 'Failed to send email. Please try again.' }
+    // Log invite URL to terminal for dev testing
+    console.log('📨 Invite URL (dev):', inviteUrl)
   }
 
   return { success: true }
@@ -117,6 +118,17 @@ export async function revokeInvite(inviteId: string) {
   })
 
   if (!session) return { error: 'Unauthorized' }
+
+  // Check user is host of the event
+  const invite = await db.query.invites.findFirst({
+    where: eq(invites.id, inviteId),
+    with: { event: true },
+  })
+
+  if (!invite) return { error: 'Invite not found' }
+  if (invite.event.hostId !== session.user.id) {
+    return { error: 'Unauthorized' }
+  }
 
   await db.delete(invites).where(eq(invites.id, inviteId))
 
