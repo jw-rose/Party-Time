@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Check } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signUp } from '@/lib/auth-client'
+import { acceptInvite } from '@/server/actions/invite.actions'
 import { registerSchema, type RegisterFormData } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,6 +65,9 @@ function PasswordStrengthBar({ password }: { password: string }) {
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get('invite')
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [serverError, setServerError] = useState('')
@@ -96,6 +100,15 @@ export default function RegisterPage() {
       return
     }
 
+    // If coming from an invite link — accept it automatically
+    if (inviteToken) {
+      const result = await acceptInvite(inviteToken, 'going')
+      if (result?.success && result.eventId) {
+        router.push(`/events/${result.eventId}`)
+        return
+      }
+    }
+
     router.push('/dashboard')
   }
 
@@ -116,7 +129,9 @@ export default function RegisterPage() {
             Create account
           </h1>
           <p className="text-muted-foreground text-sm">
-            Join PartyUp and start planning
+            {inviteToken
+              ? 'Create your account to accept the invitation'
+              : 'Join PartyUp and start planning'}
           </p>
         </div>
 
@@ -325,7 +340,11 @@ export default function RegisterPage() {
             className="w-full h-12 text-base rounded-xl font-medium"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Creating account...' : 'Create account'}
+            {isSubmitting
+              ? 'Creating account...'
+              : inviteToken
+              ? 'Create account & accept invite'
+              : 'Create account'}
           </Button>
 
           {/* Divider */}
