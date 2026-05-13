@@ -14,7 +14,7 @@ export async function sendInviteEmail({
   hostName: string
 }) {
   const { error } = await resend.emails.send({
-    from: 'PartyUp <onboarding@resend.dev>',
+    from: 'PartyUp <noreply@party-up.app>',
     to,
     subject: `You are invited to ${eventTitle}`,
     html: `
