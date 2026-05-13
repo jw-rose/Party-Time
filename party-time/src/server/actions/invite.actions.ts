@@ -69,7 +69,10 @@ export async function sendInvite(eventId: string, formData: unknown) {
 }
 
 // Accept an invite
-export async function acceptInvite(token: string) {
+export async function acceptInvite(
+  token: string,
+  status: 'going' | 'maybe' | 'declined' = 'going'
+) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -84,6 +87,11 @@ export async function acceptInvite(token: string) {
   if (!invite) return { error: 'Invite not found' }
   if (invite.usedAt) return { error: 'Invite already used' }
   if (new Date() > invite.expiresAt) return { error: 'Invite expired' }
+
+  // Email binding check — invite must match logged in user
+  if (invite.email !== session.user.email) {
+    return { error: 'This invite was sent to a different email address' }
+  }
 
   // Mark token as used
   await db
@@ -104,8 +112,18 @@ export async function acceptInvite(token: string) {
       id: crypto.randomUUID(),
       eventId: invite.eventId,
       userId: session.user.id,
-      status: 'going',
+      status,
     })
+  } else {
+    await db
+      .update(guests)
+      .set({ status, respondedAt: new Date() })
+      .where(
+        and(
+          eq(guests.eventId, invite.eventId),
+          eq(guests.userId, session.user.id)
+        )
+      )
   }
 
   return { success: true, eventId: invite.eventId }

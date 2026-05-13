@@ -110,6 +110,57 @@ export const createPostSchema = z.object({
     .max(1000, 'Message must be less than 1000 characters'),
 })
 
+// ── Profile schema ─────────────────────────────────────────────────────────
+
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be less than 50 characters'),
+})
+
+// ── Password schemas ───────────────────────────────────────────────────────
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+})
+
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain uppercase, lowercase and a number'
+      ),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain uppercase, lowercase and a number'
+      ),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
 
 
 // ── Inferred types ─────────────────────────────────────────────────────────
@@ -120,3 +171,7 @@ export type CreateEventFormData = z.infer<typeof createEventSchema>
 export type InviteFormData = z.infer<typeof inviteSchema>
 export type UpdateEventFormData = z.infer<typeof updateEventSchema>
 export type CreatePostFormData = z.infer<typeof createPostSchema>
+export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
+export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>
