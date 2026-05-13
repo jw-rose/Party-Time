@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
 
 export async function middleware(request: NextRequest) {
+  // Force www to non-www
+  const host = request.headers.get('host') ?? ''
+  if (host.startsWith('www.')) {
+    const newUrl = request.url.replace('://www.', '://')
+    return NextResponse.redirect(newUrl, 301)
+  }
+
   const session = getSessionCookie(request)
 
   const isAuthRoute =
