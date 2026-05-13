@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
 
 export async function middleware(request: NextRequest) {
-  // Force www to non-www
+  // Force www to non-www — must happen before anything else
+  // including API routes
   const host = request.headers.get('host') ?? ''
   if (host.startsWith('www.')) {
     const newUrl = request.url.replace('://www.', '://')
@@ -35,6 +36,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)',
+    // Match everything including API routes for www redirect
+    '/(.*)',
   ],
 }
