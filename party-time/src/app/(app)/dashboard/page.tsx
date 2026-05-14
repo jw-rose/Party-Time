@@ -2,8 +2,8 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/server/db'
-import { events, guests } from '@/server/db/schema'
-import { eq, gte } from 'drizzle-orm'
+import { events, guests, invites } from '@/server/db/schema'
+import { eq, and, isNull } from 'drizzle-orm'
 import Link from 'next/link'
 import { CalendarDays, MapPin, CalendarPlus, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -34,16 +34,15 @@ export default async function DashboardPage() {
 
   const attendingEvents = guestRecords.map((g) => g.event)
 
-  // Split into upcoming and past
   // Deduplicate — host should not appear twice for their own event
-const hostedIds = new Set(hostedEvents.map((e) => e.id))
+  const hostedIds = new Set(hostedEvents.map((e) => e.id))
 
-const allEvents = [
-  ...hostedEvents.map((e) => ({ ...e, role: 'hosting' as const })),
-  ...attendingEvents
-    .filter((e) => !hostedIds.has(e.id))
-    .map((e) => ({ ...e, role: 'attending' as const })),
-]
+  const allEvents = [
+    ...hostedEvents.map((e) => ({ ...e, role: 'hosting' as const })),
+    ...attendingEvents
+      .filter((e) => !hostedIds.has(e.id))
+      .map((e) => ({ ...e, role: 'attending' as const })),
+  ]
 
   const upcomingEvents = allEvents
     .filter((e) => new Date(e.date) >= now)
@@ -52,6 +51,15 @@ const allEvents = [
   const pastEvents = allEvents
     .filter((e) => new Date(e.date) < now)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  // Pending invites for this user's email
+  const pendingInvites = await db.query.invites.findMany({
+    where: and(
+      eq(invites.email, session.user.email),
+      isNull(invites.usedAt),
+    ),
+    with: { event: true },
+  })
 
   const hour = new Date().getHours()
   const greeting =
@@ -74,6 +82,30 @@ const allEvents = [
           </span>
         </div>
       </div>
+
+      {/* Pending invites banner */}
+      {pendingInvites.length > 0 && (
+        <div className="space-y-2">
+          {pendingInvites.map((invite) => (
+            <Link
+              key={invite.id}
+              href={`/invite/${invite.token}`}
+            >
+              <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-primary">
+                    You have a pending invite
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {invite.event.title} — tap to RSVP
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-primary flex-shrink-0" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3">
