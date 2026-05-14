@@ -12,6 +12,13 @@ export const auth = betterAuth({
     'https://party-up.app',
     'https://www.party-up.app',
   ],
+  advanced: {
+    cookiePrefix: 'party-up',
+    useSecureCookies: process.env.NODE_ENV === 'production',
+    crossSubdomainCookies: {
+      enabled: false,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: {

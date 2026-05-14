@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionCookie } from 'better-auth/cookies'
 
 export async function middleware(request: NextRequest) {
   // Force www to non-www
@@ -9,7 +8,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(newUrl, 301)
   }
 
-  const session = getSessionCookie(request)
+  // Check all possible Better Auth cookie names
+  const cookies = request.cookies
+  const session =
+    cookies.get('party-up.session_token')?.value ||
+    cookies.get('__Secure-party-up.session_token')?.value ||
+    cookies.get('better-auth.session_token')?.value ||
+    cookies.get('__Secure-better-auth.session_token')?.value
 
   const isAuthRoute =
     request.nextUrl.pathname.startsWith('/login') ||
@@ -22,9 +27,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/events') ||
     request.nextUrl.pathname.startsWith('/settings')
 
-  // Never redirect invite routes — they handle both states themselves
+  // Never redirect invite routes
   const isInviteRoute = request.nextUrl.pathname.startsWith('/invite')
-
   if (isInviteRoute) {
     return NextResponse.next()
   }
