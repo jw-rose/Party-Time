@@ -6,8 +6,7 @@ import Link from 'next/link'
 import { Eye, EyeOff, Check } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { signUp } from '@/lib/auth-client'
-import { acceptInvite } from '@/server/actions/invite.actions'
+import { signUp, authClient } from '@/lib/auth-client'
 import { registerSchema, type RegisterFormData } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -86,31 +85,41 @@ export default function RegisterPage() {
   const confirmValid =
     confirmValue.length > 0 && confirmValue === passwordValue
 
-  async function onSubmit(data: RegisterFormData) {
-    setServerError('')
+ async function onSubmit(data: RegisterFormData) {
+  setServerError('')
 
-    const { error } = await signUp.email({
-      name: `${data.name}`,
-      email: data.email,
-      password: data.password,
-    })
+  const { error } = await signUp.email({
+    name: data.name,
+    email: data.email,
+    password: data.password,
+  })
 
-    if (error) {
-      setServerError('Something went wrong. Please try again.')
-      return
-    }
-
-    // If coming from an invite link — accept it automatically
-    if (inviteToken) {
-      const result = await acceptInvite(inviteToken, 'going')
-      if (result?.success && result.eventId) {
-        router.push(`/events/${result.eventId}`)
-        return
-      }
-    }
-
-    router.push('/dashboard')
+  if (error) {
+    setServerError('Something went wrong. Please try again.')
+    return
   }
+
+  // Wait for session to become available
+  let attempts = 0
+
+  while (attempts < 10) {
+    const session = await authClient.getSession()
+
+    if (session.data?.session) {
+      break
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300))
+    attempts++
+  }
+
+  if (inviteToken) {
+    window.location.href = `/invite/${inviteToken}`
+    return
+  }
+
+  window.location.href = '/dashboard'
+}
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-10">
