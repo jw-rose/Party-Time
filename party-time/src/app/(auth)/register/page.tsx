@@ -99,15 +99,15 @@ async function onSubmit(data: RegisterFormData) {
     return
   }
 
-  // If coming from an invite — wait for session to be established
-  // then redirect to invite page where user can RSVP
+  // Use window.location.href for a full page reload
+  // This bypasses the Next.js router and middleware intercept
+  // giving the session cookie time to be set correctly
   if (inviteToken) {
-    await new Promise(resolve => setTimeout(resolve, 800))
-    router.push(`/invite/${inviteToken}`)
+    window.location.href = `/invite/${inviteToken}`
     return
   }
 
-  router.push('/dashboard')
+  window.location.href = '/dashboard'
 }
 
   return (
