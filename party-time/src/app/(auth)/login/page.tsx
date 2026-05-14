@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get('invite')
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
 
@@ -35,6 +37,11 @@ export default function LoginPage() {
 
     if (error) {
       setServerError('Invalid email or password. Please try again.')
+      return
+    }
+
+    if (inviteToken) {
+      window.location.href = `/invite/${inviteToken}`
       return
     }
 
