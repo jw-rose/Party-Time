@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
 
 export async function middleware(request: NextRequest) {
-  // Force www to non-www — must happen before anything else
-  // including API routes
+  // Force www to non-www
   const host = request.headers.get('host') ?? ''
   if (host.startsWith('www.')) {
     const newUrl = request.url.replace('://www.', '://')
@@ -23,6 +22,13 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/events') ||
     request.nextUrl.pathname.startsWith('/settings')
 
+  // Never redirect invite routes — they handle both states themselves
+  const isInviteRoute = request.nextUrl.pathname.startsWith('/invite')
+
+  if (isInviteRoute) {
+    return NextResponse.next()
+  }
+
   if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -35,8 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    // Match everything including API routes for www redirect
-    '/(.*)',
-  ],
+  matcher: ['/(.*)',],
 }

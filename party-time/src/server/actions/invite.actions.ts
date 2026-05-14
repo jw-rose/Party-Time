@@ -88,8 +88,8 @@ export async function acceptInvite(
   if (invite.usedAt) return { error: 'Invite already used' }
   if (new Date() > invite.expiresAt) return { error: 'Invite expired' }
 
-  // Email binding check — invite must match logged in user
-  if (invite.email !== session.user.email) {
+  // Email binding check — case-insensitive to prevent false mismatches
+  if (invite.email.toLowerCase() !== session.user.email.toLowerCase()) {
     return { error: 'This invite was sent to a different email address' }
   }
 
