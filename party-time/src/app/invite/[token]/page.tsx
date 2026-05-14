@@ -1,4 +1,5 @@
 import { validateInviteToken } from '@/server/dal/invites.dal'
+import { InviteSessionRefresh } from '@/components/features/invites/invite-session-refresh'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -40,6 +41,7 @@ export default async function InviteAcceptPage({
             <Link href="/login">Go to login</Link>
           </Button>
         </div>
+        <InviteSessionRefresh />
       </div>
     )
   }
