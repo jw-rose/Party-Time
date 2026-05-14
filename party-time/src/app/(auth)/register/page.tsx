@@ -88,37 +88,46 @@ export default function RegisterPage() {
  async function onSubmit(data: RegisterFormData) {
   setServerError('')
 
-  const { error } = await signUp.email({
-    name: data.name,
-    email: data.email,
-    password: data.password,
-  })
+  try {
+    const { error } = await signUp.email({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    })
 
-  if (error) {
-    setServerError('Something went wrong. Please try again.')
-    return
-  }
-
-  // Wait for session to become available
-  let attempts = 0
-
-  while (attempts < 10) {
-    const session = await authClient.getSession()
-
-    if (session.data?.session) {
-      break
+    if (error) {
+      setServerError('Something went wrong. Please try again.')
+      return
     }
 
-    await new Promise(resolve => setTimeout(resolve, 300))
-    attempts++
-  }
+    // Wait for auth session + cookies to fully hydrate
+    let sessionReady = false
 
-  if (inviteToken) {
-    window.location.href = `/invite/${inviteToken}`
-    return
-  }
+    for (let i = 0; i < 15; i++) {
+      const session = await authClient.getSession()
 
-  window.location.href = '/dashboard'
+      if (session?.data?.session) {
+        sessionReady = true
+        break
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 300))
+    }
+
+    // Extra buffer for Safari/mobile cookie propagation
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    // If arriving from an invite, return to invite page
+    if (inviteToken) {
+      router.replace(`/invite/${inviteToken}`)
+      return
+    }
+
+    router.replace('/dashboard')
+  } catch (err) {
+    console.error(err)
+    setServerError('Unable to finish sign up. Please try again.')
+  }
 }
 
   return (
