@@ -1,11 +1,8 @@
 import { validateInviteToken } from '@/server/dal/invites.dal'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { CalendarDays, MapPin, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { AcceptInviteButton } from '@/components/features/invites/accept-invite-button'
+import { InviteRSVP } from '@/components/features/invites/invite-rsvp'
 
 export default async function InviteAcceptPage({
   params,
@@ -13,10 +10,6 @@ export default async function InviteAcceptPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
 
   let invite
 
@@ -32,8 +25,8 @@ export default async function InviteAcceptPage({
           <div>
             <h2 className="text-xl font-semibold">Invalid invite</h2>
             <p className="text-sm text-muted-foreground mt-2">
-              This invite link is invalid, expired, or has already been used.
-              Ask the host to send you a new invite.
+              This invite link is invalid, expired, or has already been
+              used. Ask the host to send you a new invite.
             </p>
           </div>
           <Button asChild variant="outline" className="rounded-xl w-full">
@@ -44,11 +37,6 @@ export default async function InviteAcceptPage({
     )
   }
 
-  if (!session) {
-    redirect(`/register?invite=${token}`)
-  }
-
-  // Calculate time remaining
   const hoursLeft = Math.max(
     0,
     Math.round(
@@ -84,14 +72,14 @@ export default async function InviteAcceptPage({
           </div>
         </div>
 
-        {/* You are invited badge */}
+        {/* Badge */}
         <div className="flex justify-end">
           <span className="text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">
             You&apos;re invited
           </span>
         </div>
 
-        {/* Invited by */}
+        {/* Event title */}
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">
             Someone invited you to
@@ -106,7 +94,7 @@ export default async function InviteAcceptPage({
           )}
         </div>
 
-        {/* Valid badge + expiry */}
+        {/* Valid badge */}
         <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-xl border border-green-200 dark:border-green-900">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -120,15 +108,13 @@ export default async function InviteAcceptPage({
           </div>
         </div>
 
-        {/* Event details card */}
+        {/* Event details */}
         <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
           <div className="flex items-start gap-3">
             <CalendarDays className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium">{formattedDate}</p>
-              <p className="text-xs text-muted-foreground">
-                {formattedTime}
-              </p>
+              <p className="text-xs text-muted-foreground">{formattedTime}</p>
             </div>
           </div>
           {invite.event.location && (
@@ -137,30 +123,13 @@ export default async function InviteAcceptPage({
               <p className="text-sm font-medium">{invite.event.location}</p>
             </div>
           )}
-          {invite.event.description && (
-            <div className="flex items-start gap-3">
-              <Clock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-muted-foreground">
-                {invite.event.description}
-              </p>
-            </div>
-          )}
         </div>
 
-        {/* RSVP section */}
+        {/* RSVP — client component handles session check */}
         <div className="space-y-3">
           <p className="text-sm font-medium">RSVP</p>
-          <AcceptInviteButton token={token} />
+          <InviteRSVP token={token} inviteEmail={invite.email} />
         </div>
-
-        {/* Maybe later */}
-        <Button
-          asChild
-          variant="ghost"
-          className="w-full text-muted-foreground"
-        >
-          <Link href="/dashboard">Maybe later</Link>
-        </Button>
 
       </div>
     </div>
