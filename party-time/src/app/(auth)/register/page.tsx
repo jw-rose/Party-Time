@@ -85,10 +85,9 @@ export default function RegisterPage() {
   const confirmValid =
     confirmValue.length > 0 && confirmValue === passwordValue
 
- async function onSubmit(data: RegisterFormData) {
-  setServerError('')
+  async function onSubmit(data: RegisterFormData) {
+    setServerError('')
 
-  try {
     const { error } = await signUp.email({
       name: data.name,
       email: data.email,
@@ -100,35 +99,29 @@ export default function RegisterPage() {
       return
     }
 
-    // Wait for auth session + cookies to fully hydrate
-    let sessionReady = false
-
-    for (let i = 0; i < 15; i++) {
-      const session = await authClient.getSession()
-
-      if (session?.data?.session) {
-        sessionReady = true
-        break
+    if (inviteToken) {
+      // Small bounded retry for auth hydration
+      let session = null
+      for (let i = 0; i < 3; i++) {
+        const result = await authClient.getSession()
+        if (result?.data?.session) {
+          session = result.data.session
+          break
+        }
+        await new Promise((r) => setTimeout(r, 150))
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 300))
-    }
+      if (!session) {
+        setServerError('Authentication is still initializing. Please try again.')
+        return
+      }
 
-    // Extra buffer for Safari/mobile cookie propagation
-    await new Promise((resolve) => setTimeout(resolve, 250))
-
-    // If arriving from an invite, return to invite page
-    if (inviteToken) {
       router.replace(`/invite/${inviteToken}`)
       return
     }
 
     router.replace('/dashboard')
-  } catch (err) {
-    console.error(err)
-    setServerError('Unable to finish sign up. Please try again.')
   }
-}
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-10">

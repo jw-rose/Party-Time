@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { signIn } from '@/lib/auth-client'
+import { signIn, authClient } from '@/lib/auth-client'
 import { loginSchema, type LoginFormData } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get('invite')
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
 
@@ -38,7 +40,28 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    if (inviteToken) {
+      // Small bounded retry for auth hydration
+      let session = null
+      for (let i = 0; i < 3; i++) {
+        const result = await authClient.getSession()
+        if (result?.data?.session) {
+          session = result.data.session
+          break
+        }
+        await new Promise((r) => setTimeout(r, 150))
+      }
+
+      if (!session) {
+        setServerError('Authentication is still initializing. Please try again.')
+        return
+      }
+
+      router.replace(`/invite/${inviteToken}`)
+      return
+    }
+
+    router.replace('/dashboard')
   }
 
   return (

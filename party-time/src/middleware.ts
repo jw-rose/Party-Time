@@ -8,7 +8,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(newUrl, 301)
   }
 
-  // Check all possible Better Auth cookie names
   const cookies = request.cookies
   const session =
     cookies.get('party-up.session_token')?.value ||
@@ -18,26 +17,25 @@ export async function middleware(request: NextRequest) {
 
   const isAuthRoute =
     request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register') ||
-    request.nextUrl.pathname.startsWith('/forgot-password') ||
-    request.nextUrl.pathname.startsWith('/reset-password')
+    request.nextUrl.pathname.startsWith('/register')
 
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/events') ||
     request.nextUrl.pathname.startsWith('/settings')
 
-  // Never redirect invite routes
-  const isInviteRoute = request.nextUrl.pathname.startsWith('/invite')
-  if (isInviteRoute) {
-    return NextResponse.next()
-  }
-
   if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Preserve invite context when redirecting authenticated users
   if (isAuthRoute && session) {
+    const invite = request.nextUrl.searchParams.get('invite')
+    if (invite) {
+      return NextResponse.redirect(
+        new URL(`/invite/${invite}`, request.url)
+      )
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -45,5 +43,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/(.*)',],
+  matcher: [
+    '/dashboard/:path*',
+    '/events/:path*',
+    '/settings/:path*',
+    '/login',
+    '/register',
+    '/invite/:path*',
+  ],
 }
