@@ -85,29 +85,22 @@ export default function RegisterPage() {
   const confirmValid =
     confirmValue.length > 0 && confirmValue === passwordValue
 
-    async function onSubmit(data: RegisterFormData) {
-  setServerError('')
+  async function onSubmit(data: RegisterFormData) {
+    setServerError('')
 
-  const { error } = await signUp.email({
-    name: data.name,
-    email: data.email,
-    password: data.password,
-    fetchOptions: {
-      onSuccess: () => {
-        if (inviteToken) {
-          router.replace(`/invite-ready?token=${inviteToken}`)
-        } else {
-          router.replace('/dashboard')
-        }
-      },
-    },
-  })
+    const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
 
-  if (error) {
-    setServerError('Something went wrong. Please try again.')
+    const { error } = await signUp.email({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      callbackURL: callbackUrl,
+    })
+
+    if (error) {
+      setServerError('Something went wrong. Please try again.')
+    }
   }
-}
-  
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-10">

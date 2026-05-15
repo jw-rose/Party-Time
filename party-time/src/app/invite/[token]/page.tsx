@@ -15,7 +15,7 @@ export default async function InviteAcceptPage({
   })
 
   if (!session) {
-    redirect(`/register?invite=${token}`)
+    redirect(`/register?callbackUrl=/invite/${token}`)
   }
 
   return <InvitePageClient token={token} />

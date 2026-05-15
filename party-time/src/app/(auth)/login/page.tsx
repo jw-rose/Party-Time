@@ -30,18 +30,12 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormData) {
     setServerError('')
 
-    const destination = inviteToken
-      ? `/invite/${inviteToken}`
-      : '/dashboard'
+    const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
 
     const { error } = await signIn.email({
       email: data.email,
       password: data.password,
-      fetchOptions: {
-        onSuccess: () => {
-          router.replace(destination)
-        },
-      },
+      callbackURL: callbackUrl,
     })
 
     if (error) {
