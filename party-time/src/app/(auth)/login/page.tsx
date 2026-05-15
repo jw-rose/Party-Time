@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { signIn, authClient } from '@/lib/auth-client'
+import { signIn } from '@/lib/auth-client'
 import { loginSchema, type LoginFormData } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,38 +30,23 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormData) {
     setServerError('')
 
+    const destination = inviteToken
+      ? `/invite/${inviteToken}`
+      : '/dashboard'
+
     const { error } = await signIn.email({
       email: data.email,
       password: data.password,
+      fetchOptions: {
+        onSuccess: () => {
+          router.replace(destination)
+        },
+      },
     })
 
     if (error) {
       setServerError('Invalid email or password. Please try again.')
-      return
     }
-
-    if (inviteToken) {
-      // Small bounded retry for auth hydration
-      let session = null
-      for (let i = 0; i < 3; i++) {
-        const result = await authClient.getSession()
-        if (result?.data?.session) {
-          session = result.data.session
-          break
-        }
-        await new Promise((r) => setTimeout(r, 150))
-      }
-
-      if (!session) {
-        setServerError('Authentication is still initializing. Please try again.')
-        return
-      }
-
-      router.replace(`/invite/${inviteToken}`)
-      return
-    }
-
-    router.replace('/dashboard')
   }
 
   return (

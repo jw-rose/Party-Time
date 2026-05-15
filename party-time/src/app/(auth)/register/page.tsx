@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Eye, EyeOff, Check } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { signUp, authClient } from '@/lib/auth-client'
+import { signUp } from '@/lib/auth-client'
 import { registerSchema, type RegisterFormData } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -88,39 +88,24 @@ export default function RegisterPage() {
   async function onSubmit(data: RegisterFormData) {
     setServerError('')
 
+    const destination = inviteToken
+      ? `/invite/${inviteToken}`
+      : '/dashboard'
+
     const { error } = await signUp.email({
       name: data.name,
       email: data.email,
       password: data.password,
+      fetchOptions: {
+        onSuccess: () => {
+          router.replace(destination)
+        },
+      },
     })
 
     if (error) {
       setServerError('Something went wrong. Please try again.')
-      return
     }
-
-    if (inviteToken) {
-      // Small bounded retry for auth hydration
-      let session = null
-      for (let i = 0; i < 3; i++) {
-        const result = await authClient.getSession()
-        if (result?.data?.session) {
-          session = result.data.session
-          break
-        }
-        await new Promise((r) => setTimeout(r, 150))
-      }
-
-      if (!session) {
-        setServerError('Authentication is still initializing. Please try again.')
-        return
-      }
-
-      router.replace(`/invite/${inviteToken}`)
-      return
-    }
-
-    router.replace('/dashboard')
   }
 
   return (

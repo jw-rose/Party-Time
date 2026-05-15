@@ -15,10 +15,6 @@ export async function middleware(request: NextRequest) {
     cookies.get('better-auth.session_token')?.value ||
     cookies.get('__Secure-better-auth.session_token')?.value
 
-  const isAuthRoute =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register')
-
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/events') ||
@@ -26,17 +22,6 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // Preserve invite context when redirecting authenticated users
-  if (isAuthRoute && session) {
-    const invite = request.nextUrl.searchParams.get('invite')
-    if (invite) {
-      return NextResponse.redirect(
-        new URL(`/invite/${invite}`, request.url)
-      )
-    }
-    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return NextResponse.next()
