@@ -7,9 +7,9 @@ import { eq } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
-  const { token } = params
+  const { token } = await params
 
   const session = await auth.api.getSession({
     headers: await headers(),
