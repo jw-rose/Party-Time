@@ -1,30 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const PUBLIC_ROUTES = ['/login', '/register']
-
 const PROTECTED_ROUTES = ['/dashboard', '/events', '/settings']
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, origin } = request.nextUrl
+  const host = request.headers.get('host') ?? ''
 
   // ----------------------------
-  // 1. Force non-www domain
+  // 1. Force canonical domain (non-www)
   // ----------------------------
-  const host = request.headers.get('host') ?? ''
   if (host.startsWith('www.')) {
     const url = request.nextUrl.clone()
-    url.host = host.replace('www.', '')
+    url.hostname = 'party-up.app'
     return NextResponse.redirect(url, 301)
   }
 
   // ----------------------------
-  // 2. Read session cookie (FIXED)
+  // 2. Get session (CORRECTED)
   // ----------------------------
   const session =
-    request.cookies.get('__Secure.party-up.session_token')?.value ||
-    request.cookies.get('party-up.session_token')?.value ||
-    request.cookies.get('__Secure-better-auth.session_token')?.value ||
-    request.cookies.get('better-auth.session_token')?.value
+    request.cookies.get('__Secure-party-up.session')?.value ||
+    request.cookies.get('party-up.session')?.value
 
   const isProtected = PROTECTED_ROUTES.some((route) =>
     pathname.startsWith(route)
@@ -38,27 +35,21 @@ export function middleware(request: NextRequest) {
   // 3. Redirect unauthenticated users
   // ----------------------------
   if (isProtected && !session) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
+    const url = new URL('/login', origin)
+    url.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(url)
   }
 
   // ----------------------------
-  // 4. Prevent logged-in users from seeing login page
+  // 4. Prevent logged-in users from seeing login/register
   // ----------------------------
   if (isPublic && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/dashboard', origin))
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/events/:path*',
-    '/settings/:path*',
-    '/login',
-    '/register',
-  ],
+  matcher: ['/dashboard/:path*', '/events/:path*', '/settings/:path*', '/login', '/register'],
 }
