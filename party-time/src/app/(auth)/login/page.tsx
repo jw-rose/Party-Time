@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label'
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const inviteToken = searchParams.get('invite')
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
 
@@ -36,6 +35,11 @@ export default function LoginPage() {
       email: data.email,
       password: data.password,
       callbackURL: callbackUrl,
+      fetchOptions: {
+        onSuccess: () => {
+          router.replace(callbackUrl)
+        },
+      },
     })
 
     if (error) {
