@@ -1,11 +1,10 @@
-'use client'
-
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PartyPopper } from 'lucide-react'
 
-export default function InviteReadyPage() {
+function InviteReadyContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
@@ -64,5 +63,13 @@ export default function InviteReadyPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function InviteReadyPage() {
+  return (
+    <Suspense>
+      <InviteReadyContent />
+    </Suspense>
   )
 }
