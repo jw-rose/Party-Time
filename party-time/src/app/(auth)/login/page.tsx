@@ -28,22 +28,21 @@ export default function LoginPage() {
   })
 
   async function onSubmit(data: LoginFormData) {
-  setServerError('')
+    setServerError('')
 
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
+    const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
 
-  const { error } = await signIn.email({
-    email: data.email,
-    password: data.password,
-    callbackURL: callbackUrl,
-  })
+    const { error } = await signIn.email({
+      email: data.email,
+      password: data.password,
+      callbackURL: callbackUrl,
+    })
 
-  if (!error) {
-    router.push(callbackUrl) // ✅ ensure navigation
-  } else {
-    setServerError('Invalid email or password. Please try again.')
+    if (error) {
+      setServerError('Invalid email or password. Please try again.')
+    }
   }
-}
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="w-full max-w-sm space-y-8">
