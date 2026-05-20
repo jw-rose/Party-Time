@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Check } from 'lucide-react'
@@ -62,10 +62,12 @@ function PasswordStrengthBar({ password }: { password: string }) {
   )
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const inviteToken = searchParams.get('invite')
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
+  const isInviteFlow = inviteToken !== null || callbackUrl.startsWith('/invite/')
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -87,8 +89,6 @@ export default function RegisterPage() {
 
   async function onSubmit(data: RegisterFormData) {
     setServerError('')
-
-    const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
 
     const { error } = await signUp.email({
       name: data.name,
@@ -119,7 +119,7 @@ export default function RegisterPage() {
             Create account
           </h1>
           <p className="text-muted-foreground text-sm">
-            {inviteToken
+            {isInviteFlow
               ? 'Create your account to accept the invitation'
               : 'Join PartyUp and start planning'}
           </p>
@@ -332,7 +332,7 @@ export default function RegisterPage() {
           >
             {isSubmitting
               ? 'Creating account...'
-              : inviteToken
+              : isInviteFlow
               ? 'Create account & accept invite'
               : 'Create account'}
           </Button>
@@ -389,5 +389,13 @@ export default function RegisterPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   )
 }
