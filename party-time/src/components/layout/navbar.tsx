@@ -40,7 +40,7 @@ export function Navbar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold text-lg">Party Time</span>
+          <span className="font-semibold text-lg">Party Up</span>
         </Link>
 
         {/* Right side */}
