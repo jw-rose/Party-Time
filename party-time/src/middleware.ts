@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Force www to non-www
-  const host = request.headers.get('host') ?? ''
-  if (host.startsWith('www.')) {
-    const newUrl = request.url.replace('://www.', '://')
-    return NextResponse.redirect(newUrl, 301)
-  }
-
   const cookies = request.cookies
   const session =
     cookies.get('party-up.session_token')?.value ||
