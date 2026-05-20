@@ -7,9 +7,9 @@ import { eq } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
-  const { token } = params
+  const { token } = await params
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -29,11 +29,17 @@ export async function GET(
   }
 
   if (invite.usedAt) {
-    return NextResponse.json({ error: 'Invite already used' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invite already used' },
+      { status: 400 }
+    )
   }
 
   if (new Date() > invite.expiresAt) {
-    return NextResponse.json({ error: 'Invite expired' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invite expired' },
+      { status: 400 }
+    )
   }
 
   if (invite.email.toLowerCase() !== session.user.email.toLowerCase()) {
