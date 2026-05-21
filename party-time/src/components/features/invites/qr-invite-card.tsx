@@ -1,22 +1,19 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import { generateQRCode } from '@/lib/qr'
-import { buildInviteUrl } from '@/server/services/invite.service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Copy, Check } from 'lucide-react'
 
 export function QRInviteCard({
-  eventId,
   eventTitle,
+  inviteUrl,
 }: {
-  eventId: string
   eventTitle: string
+  inviteUrl: string
 }) {
   const [qrCode, setQrCode] = useState<string>('')
   const [copied, setCopied] = useState(false)
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/events/${eventId}/invite`
 
   useEffect(() => {
     generateQRCode(inviteUrl).then(setQrCode)

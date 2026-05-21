@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/server/db'
 import { events, invites } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { InviteForm } from '@/components/features/invites/invite-form'
 import { InviteList } from '@/components/features/invites/invite-list'
 import { QRInviteCard } from '@/components/features/invites/qr-invite-card'
@@ -31,7 +31,14 @@ export default async function InvitePage({
 
   const pendingInvites = await db.query.invites.findMany({
     where: eq(invites.eventId, eventId),
+    orderBy: [desc(invites.expiresAt)],
   })
+
+  // Use the most recent invite token for the QR code
+  const latestInvite = pendingInvites[0]
+  const qrInviteUrl = latestInvite
+    ? buildInviteUrl(latestInvite.token)
+    : buildInviteUrl('no-invites-yet')
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
@@ -41,11 +48,11 @@ export default async function InvitePage({
           Send invites to {event.title}
         </p>
       </div>
-
       <InviteForm eventId={eventId} />
-
-      <QRInviteCard eventId={eventId} eventTitle={event.title} />
-
+      <QRInviteCard
+        eventTitle={event.title}
+        inviteUrl={qrInviteUrl}
+      />
       <InviteList invites={pendingInvites} eventId={eventId} />
     </div>
   )
