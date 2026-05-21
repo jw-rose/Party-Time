@@ -11,6 +11,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     'https://party-up.app',
     'https://www.party-up.app',
+    'http://localhost:3000',
   ],
   advanced: {
     cookiePrefix: 'party-up',

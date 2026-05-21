@@ -6,9 +6,9 @@ import { InvitePageClient } from '@/components/features/invites/invite-page-clie
 export default async function InviteAcceptPage({
   params,
 }: {
-  params: { token: string }
+  params: Promise<{ token: string }>
 }) {
-  const { token } = params
+  const { token } = await params
 
   const session = await auth.api.getSession({
     headers: await headers(),
