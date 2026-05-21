@@ -141,18 +141,52 @@ test.describe.serial('Invite flow', () => {
     const context = await browser.newContext()
     const page = await context.newPage()
 
-    // Login as guest created in previous test
     await page.goto('/login')
     await page.fill('#email', GUEST_EMAIL)
     await page.fill('#password', GUEST_PASSWORD)
     await page.click('button[type="submit"]')
     await page.waitForURL('/dashboard', { timeout: 15000 })
 
-    // Event should appear on dashboard as attending
     const attendingBadge = page.locator('text=Attending').first()
     await expect(attendingBadge).toBeVisible({ timeout: 10000 })
 
     await context.close()
+  })
+
+  test('QR code on invite page generates correct invite URL', async ({ page }) => {
+    await page.goto('/login')
+    await page.fill('#email', HOST_EMAIL)
+    await page.fill('#password', HOST_PASSWORD)
+    await page.click('button[type="submit"]')
+    await page.waitForURL('/dashboard', { timeout: 15000 })
+
+    const eventId = process.env.TEST_EVENT_ID
+    if (!eventId) {
+      throw new Error('TEST_EVENT_ID not set — run full test suite from the start')
+    }
+
+    await page.goto(`/events/${eventId}/invite`)
+    await page.waitForLoadState('networkidle')
+
+    // Click copy invite link button
+    await page.click('button:has-text("Copy invite link")')
+
+    // Wait for Copied! confirmation
+    await expect(
+      page.locator('text=Copied!')
+    ).toBeVisible({ timeout: 5000 })
+
+    // Read clipboard content
+    const clipboardText = await page.evaluate(() =>
+      navigator.clipboard.readText()
+    )
+
+    console.log('Clipboard invite URL:', clipboardText)
+
+    // URL should point to /invite/[token] not /events/[id]/invite
+    expect(clipboardText).toContain('/invite/')
+    expect(clipboardText).not.toContain('/events/')
+    expect(clipboardText).toContain('party-up.app')
   })
 
 })
