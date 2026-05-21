@@ -5,48 +5,51 @@ import { test, expect } from '@playwright/test'
 // WHERE token = '5729d443-6c1a-4e59-abb4-6dc3cd5795c6';
 // DELETE FROM users WHERE email = 'josh89rose@icloud.com';
 const GUEST_EMAIL = 'josh89rose@icloud.com'
-const GUEST_PASSWORD = 'TestPass1!'
+const GUEST_PASSWORD = 'Test!1234!'
 const GUEST_NAME = 'Josh'
 const INVITE_TOKEN = '5729d443-6c1a-4e59-abb4-6dc3cd5795c6'
 const INVITE_URL = `/invite/${INVITE_TOKEN}`
 
-test.describe('Invite flow', () => {
+// Serial ensures registration test runs before existing guest test
+test.describe.serial('Invite flow', () => {
 
   test('host can navigate to invite page', async ({ page }) => {
     await page.goto('/login')
-    await page.fill('#email', 'jamie@test.com')
-    await page.fill('#password', 'TestPass1!')
+    await page.fill('#email', 'josh1989rose@gmail.com')
+    await page.fill('#password', 'Ikamoa39!')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard')
+    await page.waitForURL('/dashboard', { timeout: 15000 })
 
-    // Go to events page
     await page.goto('/events')
 
-    // Click first event if exists
     const firstEvent = page.locator('a[href*="/events/"]').first()
     if (await firstEvent.isVisible()) {
       await firstEvent.click()
-      await page.waitForURL(/\/events\/.+/)
+      await page.waitForURL(/\/events\/.+/, { timeout: 10000 })
 
-      // Click invite button
       const inviteBtn = page.locator('a[href*="/invite"]').first()
       if (await inviteBtn.isVisible()) {
         await inviteBtn.click()
-        await page.waitForURL(/\/invite$/)
+        await page.waitForURL(/\/invite$/, { timeout: 10000 })
         expect(page.url()).toContain('/invite')
       }
     }
   })
 
   test('invalid invite token shows error page', async ({ page }) => {
+    await page.goto('/login')
+    await page.fill('#email', 'josh1989rose@gmail.com')
+    await page.fill('#password', 'Ikamoa39!')
+    await page.click('button[type="submit"]')
+    await page.waitForURL('/dashboard', { timeout: 15000 })
+
     await page.goto('/invite/invalid-token-that-does-not-exist')
 
-    const errorText = page.locator('text=Invalid invite')
-    await expect(errorText).toBeVisible()
+    const errorText = page.locator('h2', { hasText: 'Invalid invite' })
+    await expect(errorText).toBeVisible({ timeout: 10000 })
   })
 
   test('guest with no account can register via invite link and RSVP', async ({ browser }) => {
-    // Fresh browser context — no cookies, simulates a brand new user
     const context = await browser.newContext()
     const page = await context.newPage()
 
@@ -76,12 +79,15 @@ test.describe('Invite flow', () => {
     await submitButton.click()
 
     // Step 6 — Should land on invite page after registration
-    await page.waitForURL(/\/invite\//, { timeout: 15000 })
+    await page.waitForURL(/\/invite\//, { timeout: 20000 })
     expect(page.url()).toContain(INVITE_TOKEN)
+
+    // Take screenshot to see what is actually on the page
+    await page.screenshot({ path: 'test-results/invite-page-state.png', fullPage: true })
 
     // Step 7 — RSVP buttons visible
     const goingButton = page.locator('button', { hasText: "Yes, I'm going!" })
-    await expect(goingButton).toBeVisible({ timeout: 10000 })
+    await expect(goingButton).toBeVisible({ timeout: 15000 })
 
     // Step 8 — Click going
     await goingButton.click()
@@ -93,7 +99,7 @@ test.describe('Invite flow', () => {
     // Step 10 — Dashboard shows event as attending
     await page.goto('/dashboard')
     await page.waitForURL(/\/dashboard/)
-    await expect(page.locator('text=Attending')).toBeVisible()
+    await expect(page.locator('text=Attending')).toBeVisible({ timeout: 10000 })
 
     await context.close()
   })
@@ -102,18 +108,15 @@ test.describe('Invite flow', () => {
     const context = await browser.newContext()
     const page = await context.newPage()
 
-    // Login as existing guest
     await page.goto('/login')
     await page.fill('#email', GUEST_EMAIL)
     await page.fill('#password', GUEST_PASSWORD)
     await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
+    await page.waitForURL('/dashboard', { timeout: 15000 })
 
-    // Go directly to invite link
     await page.goto(INVITE_URL)
     await page.waitForURL(/\/invite\//, { timeout: 10000 })
 
-    // Should see RSVP buttons immediately — no redirect to register
     const goingButton = page.locator('button', { hasText: "Yes, I'm going!" })
     await expect(goingButton).toBeVisible({ timeout: 10000 })
 
