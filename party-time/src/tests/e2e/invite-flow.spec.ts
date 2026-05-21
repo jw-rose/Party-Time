@@ -56,13 +56,17 @@ test.describe.serial('Invite flow', () => {
     await page.fill('#password', HOST_PASSWORD)
     await page.click('button[type="submit"]')
     await page.waitForURL('/dashboard', { timeout: 15000 })
+    await page.waitForLoadState('networkidle')  // ← add here
+
 
     await page.goto('/events')
+    await page.waitForLoadState('networkidle')  // ← add here
 
     const firstEvent = page.locator('a[href*="/events/"]').first()
     if (await firstEvent.isVisible()) {
       await firstEvent.click()
       await page.waitForURL(/\/events\/.+/, { timeout: 15000 })
+      
 
       const inviteBtn = page.locator('a[href*="/invite"]').first()
       if (await inviteBtn.isVisible()) {
