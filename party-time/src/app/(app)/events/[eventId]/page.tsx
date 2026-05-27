@@ -4,7 +4,7 @@ import { getEventPosts } from '@/server/dal/posts.dal'
 import { getGuests } from '@/server/dal/guests.dal'
 import { notFound, redirect } from 'next/navigation'
 import { db } from '@/server/db'
-import { guests } from '@/server/db/schema'
+import { guests, photos } from '@/server/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { CalendarDays, MapPin, UserPlus, Edit } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,8 @@ import { CreatePostForm } from '@/components/features/events/create-post-form'
 import { EventPostCard } from '@/components/features/events/event-post'
 import { RSVPButton } from '@/components/features/events/rsvp-button'
 import { GuestList } from '@/components/features/events/guest-list'
+import { PhotoUpload } from '@/components/features/photos/photo-upload'
+import { PhotoGrid } from '@/components/features/photos/photo-grid'
 
 export default async function EventPage({
   params,
@@ -39,8 +41,6 @@ export default async function EventPage({
 
   const { event, userId } = data
   const userIsHost = isHost(userId, event)
-  const userCanUpload = canUpload(userId, event)
-  const userCanChat = canChat(userId, event)
   const posts = await getEventPosts(event.id)
   const allGuests = await getGuests(event.id)
 
@@ -53,11 +53,20 @@ export default async function EventPage({
       })
     : null
 
+  const userCanUpload = canUpload(userId, event, guestRecord)
+  const userCanChat = canChat(userId, event, guestRecord)
   const currentGuestStatus = guestRecord?.status ?? 'pending'
 
   const going = allGuests.filter((g) => g.status === 'going').length
   const maybe = allGuests.filter((g) => g.status === 'maybe').length
   const pending = allGuests.filter((g) => g.status === 'pending').length
+
+  const eventPhotos = await db.query.photos.findMany({
+    where: (photos, { eq }) => eq(photos.eventId, event.id),
+    orderBy: (photos, { desc }) => [desc(photos.createdAt)],
+  })
+  const isHostUser = userIsHost
+  const session = { user: { id: userId } }
 
   const formattedDate = new Date(event.date).toLocaleDateString('en-GB', {
     weekday: 'short',
@@ -345,13 +354,13 @@ export default async function EventPage({
           )}
 
           {/* Photos preview */}
-          {userCanUpload && (
+          {userCanUpload && eventPhotos.length > 0 && (
             <Card>
               <CardContent className="p-4 flex items-center justify-between">
                 <p className="text-sm font-medium">Photos</p>
-                <Button asChild size="sm" variant="ghost" className="text-primary">
-                  <Link href={`/events/${event.id}/photos`}>See all</Link>
-                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {eventPhotos.length} uploaded
+                </span>
               </CardContent>
             </Card>
           )}
@@ -380,15 +389,14 @@ export default async function EventPage({
 
         {/* ── PHOTOS TAB ── */}
         {userCanUpload && (
-          <TabsContent value="photos" className="px-4 pt-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-sm">Photos coming soon</p>
-              <Button asChild className="mt-4 rounded-xl" variant="outline">
-                <Link href={`/events/${event.id}/photos`}>
-                  Open photos
-                </Link>
-              </Button>
-            </div>
+          <TabsContent value="photos" className="px-4 pt-4 space-y-4">
+            <PhotoUpload eventId={event.id} />
+            <PhotoGrid
+              photos={eventPhotos}
+              eventId={event.id}
+              currentUserId={session.user.id}
+              isHost={isHostUser}
+            />
           </TabsContent>
         )}
 

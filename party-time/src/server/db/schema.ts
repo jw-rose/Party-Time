@@ -124,6 +124,19 @@ export const eventPosts = pgTable('event_posts', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
+export const photos = pgTable('photos', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  uploadedBy: text('uploaded_by')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  key: text('key').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
 // ── Relations ──────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -131,6 +144,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   guests: many(guests),
   invites: many(invites),
   posts: many(eventPosts),
+  photos: many(photos),
 }))
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -141,6 +155,7 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   guests: many(guests),
   invites: many(invites),
   posts: many(eventPosts),
+  photos: many(photos),
 }))
 
 export const guestsRelations = relations(guests, ({ one }) => ({
@@ -176,6 +191,17 @@ export const eventPostsRelations = relations(eventPosts, ({ one }) => ({
   }),
 }))
 
+export const photosRelations = relations(photos, ({ one }) => ({
+  event: one(events, {
+    fields: [photos.eventId],
+    references: [events.id],
+  }),
+  uploadedBy: one(users, {
+    fields: [photos.uploadedBy],
+    references: [users.id],
+  }),
+}))
+
 // ── Type exports ───────────────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect
@@ -188,3 +214,5 @@ export type Invite = typeof invites.$inferSelect
 export type NewInvite = typeof invites.$inferInsert
 export type EventPost = typeof eventPosts.$inferSelect
 export type NewEventPost = typeof eventPosts.$inferInsert
+export type Photo = typeof photos.$inferSelect
+export type NewPhoto = typeof photos.$inferInsert
