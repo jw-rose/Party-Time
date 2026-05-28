@@ -341,18 +341,7 @@ export default async function EventPage({
             )}
           </div>
 
-          {/* Chat preview */}
-          {userCanChat && (
-            <Card>
-              <CardContent className="p-4 flex items-center justify-between">
-                <p className="text-sm font-medium">Chat</p>
-                <Button asChild size="sm" variant="ghost" className="text-primary">
-                  <Link href={`/events/${event.id}/chat`}>Open</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
+          
           {/* Photos preview */}
           {userCanUpload && eventPhotos.length > 0 && (
             <Card>
