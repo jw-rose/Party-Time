@@ -60,6 +60,7 @@ export default async function EventPage({
   const going = allGuests.filter((g) => g.status === 'going').length
   const maybe = allGuests.filter((g) => g.status === 'maybe').length
   const pending = allGuests.filter((g) => g.status === 'pending').length
+  const declined = allGuests.filter((g) => g.status === 'declined').length
 
   const eventPhotos = await db.query.photos.findMany({
     where: (photos, { eq }) => eq(photos.eventId, event.id),
@@ -247,7 +248,7 @@ export default async function EventPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pb-4">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-xl">
                     <p className="text-2xl font-bold text-green-600">
                       {going}
@@ -271,6 +272,14 @@ export default async function EventPage({
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Pending
                     </p>
+                    <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-xl">
+                    <p className="text-2xl font-bold text-red-500">
+                      {declined}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Not going
+                    </p>
+                  </div>
                   </div>
                 </div>
               </CardContent>
