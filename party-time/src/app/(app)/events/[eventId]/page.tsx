@@ -272,14 +272,14 @@ export default async function EventPage({
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Pending
                     </p>
-                    <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-xl">
+                  </div>
+                  <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-xl">
                     <p className="text-2xl font-bold text-red-500">
                       {declined}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Not going
                     </p>
-                  </div>
                   </div>
                 </div>
               </CardContent>
@@ -350,7 +350,6 @@ export default async function EventPage({
             )}
           </div>
 
-          
           {/* Photos preview */}
           {userCanUpload && eventPhotos.length > 0 && (
             <Card>
