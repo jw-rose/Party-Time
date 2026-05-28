@@ -1,29 +1,42 @@
 'use server'
-
 import { auth } from '@/lib/auth'
 import { db } from '@/server/db'
-import { eventPosts, events } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { eventPosts, events, guests } from '@/server/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { createPostSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 
-export async function createPost(eventId: string, formData: unknown) {
+export async function createPost(
+  eventId: string,
+  formData: unknown,
+  allowGuests = false
+) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
-
   if (!session) return { error: 'Unauthorized' }
 
-  // Check user is host
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),
   })
-
   if (!event) return { error: 'Event not found' }
-  if (event.hostId !== session.user.id) return { error: 'Unauthorized' }
 
-  // Validate content
+  const isHost = event.hostId === session.user.id
+
+  if (!isHost) {
+    if (!allowGuests) return { error: 'Unauthorized' }
+
+    // Check user is a guest of this event
+    const guestRecord = await db.query.guests.findFirst({
+      where: and(
+        eq(guests.eventId, eventId),
+        eq(guests.userId, session.user.id)
+      ),
+    })
+    if (!guestRecord) return { error: 'Unauthorized' }
+  }
+
   const result = createPostSchema.safeParse(formData)
   if (!result.success) {
     return { error: result.error.issues[0].message }
@@ -44,19 +57,25 @@ export async function deletePost(postId: string, eventId: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
-
   if (!session) return { error: 'Unauthorized' }
 
-  // Check user is host
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),
   })
-
   if (!event) return { error: 'Event not found' }
-  if (event.hostId !== session.user.id) return { error: 'Unauthorized' }
+
+  const post = await db.query.eventPosts.findFirst({
+    where: eq(eventPosts.id, postId),
+  })
+  if (!post) return { error: 'Post not found' }
+
+  // Host can delete any post, guests can only delete their own
+  const isHost = event.hostId === session.user.id
+  const isAuthor = post.authorId === session.user.id
+
+  if (!isHost && !isAuthor) return { error: 'Unauthorized' }
 
   await db.delete(eventPosts).where(eq(eventPosts.id, postId))
-
   revalidatePath(`/events/${eventId}`)
   return { success: true }
 }

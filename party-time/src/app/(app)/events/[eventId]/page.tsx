@@ -402,15 +402,29 @@ export default async function EventPage({
 
         {/* ── CHAT TAB ── */}
         {userCanChat && (
-          <TabsContent value="chat" className="px-4 pt-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-sm">Chat coming soon</p>
-              <Button asChild className="mt-4 rounded-xl" variant="outline">
-                <Link href={`/events/${event.id}/chat`}>
-                  Open chat
-                </Link>
-              </Button>
-            </div>
+          <TabsContent value="chat" className="px-4 pt-4 space-y-4">
+            <CreatePostForm
+              eventId={event.id}
+              allowGuests={true}
+              placeholder="Say something to the group..."
+            />
+            {posts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">No messages yet</p>
+                <p className="text-xs mt-1">Be the first to say something</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {posts.map((post) => (
+                  <EventPostCard
+                    key={post.id}
+                    post={post}
+                    isHost={userIsHost}
+                    eventId={event.id}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
         )}
 
