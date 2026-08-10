@@ -11,6 +11,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { EventDateCalendar } from '@/components/features/events/event-date-calendar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { CalendarDays, MapPin, ImageIcon, MessageCircle } from 'lucide-react'
 
 interface CreateEventFormProps {
@@ -47,8 +54,7 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
     setValue('date', `${date}T${selectedTime}`, { shouldValidate: true })
   }
 
-  function handleTimeChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const time = e.target.value
+  function handleTimeChange(time: string) {
     setSelectedTime(time)
     if (selectedDate) {
       setValue('date', `${selectedDate}T${time}`, { shouldValidate: true })
@@ -131,17 +137,36 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
             />
 
             <div className="flex items-center gap-3 pt-1">
-              <Label htmlFor="time" className="text-sm font-medium shrink-0">
-                Time
-              </Label>
-              <Input
-                id="time"
-                type="time"
+              <Label className="text-sm font-medium shrink-0">Time</Label>
+              <Select
                 value={selectedTime}
-                onChange={handleTimeChange}
+                onValueChange={handleTimeChange}
                 disabled={isSubmitting}
-                className="h-10 text-base px-3 rounded-xl border-border/60"
-              />
+              >
+                <SelectTrigger
+                  aria-label="Time"
+                  className="h-10 w-28 rounded-xl border-primary bg-white text-base text-primary"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white max-h-64">
+                  {Array.from({ length: 24 * 4 }, (_, i) => {
+                    const totalMinutes = i * 15
+                    const h = String(Math.floor(totalMinutes / 60)).padStart(2, '0')
+                    const m = String(totalMinutes % 60).padStart(2, '0')
+                    const value = `${h}:${m}`
+                    return (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="text-primary focus:bg-primary/10"
+                      >
+                        {value}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             {errors.date && (

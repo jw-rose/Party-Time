@@ -28,6 +28,8 @@ interface EventDateCalendarProps {
   onSelectDate: (date: string) => void
   minDate?: string
   disabled?: boolean
+  excludeEventId?: string
+  initialMonth?: Date
 }
 
 const MAX_CHIPS = 2
@@ -39,8 +41,10 @@ export function EventDateCalendar({
   onSelectDate,
   minDate,
   disabled,
+  excludeEventId,
+  initialMonth,
 }: EventDateCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [currentMonth, setCurrentMonth] = useState(initialMonth ?? new Date())
   const [displayedEvents, setDisplayedEvents] = useState<CalendarEvent[]>(initialEvents)
   const [isPending, startTransition] = useTransition()
 
@@ -53,7 +57,9 @@ export function EventDateCalendar({
   function eventsForDay(day: Date): CalendarEvent[] {
     const key = format(day, 'yyyy-MM-dd')
     return displayedEvents.filter(
-      (e) => format(new Date(e.date), 'yyyy-MM-dd') === key
+      (e) =>
+        format(new Date(e.date), 'yyyy-MM-dd') === key &&
+        (!excludeEventId || e.id !== excludeEventId)
     )
   }
 
