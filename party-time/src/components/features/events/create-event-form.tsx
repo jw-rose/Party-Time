@@ -10,11 +10,25 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { EventDateCalendar } from '@/components/features/events/event-date-calendar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { CalendarDays, MapPin, ImageIcon, MessageCircle } from 'lucide-react'
 
-export function CreateEventForm() {
+interface CreateEventFormProps {
+  initialEvents: { id: string; title: string; date: string }[]
+}
+
+export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState('')
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedTime, setSelectedTime] = useState('12:00')
 
   const {
     register,
@@ -32,6 +46,20 @@ export function CreateEventForm() {
 
   const photosEnabled = watch('photosEnabled')
   const chatEnabled = watch('chatEnabled')
+
+  const today = new Date().toISOString().slice(0, 10)
+
+  function handleDateSelect(date: string) {
+    setSelectedDate(date)
+    setValue('date', `${date}T${selectedTime}`, { shouldValidate: true })
+  }
+
+  function handleTimeChange(time: string) {
+    setSelectedTime(time)
+    if (selectedDate) {
+      setValue('date', `${selectedDate}T${time}`, { shouldValidate: true })
+    }
+  }
 
   async function onSubmit(data: CreateEventFormData) {
     setServerError('')
@@ -91,21 +119,56 @@ export function CreateEventForm() {
             )}
           </div>
 
-          {/* Date and time */}
+          {/* Date & time */}
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-sm font-medium">
+            <Label className="text-sm font-medium">
               <span className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                Date & time
+                Date &amp; time
               </span>
             </Label>
-            <Input
-              id="date"
-              type="datetime-local"
+
+            <EventDateCalendar
+              initialEvents={initialEvents}
+              selectedDate={selectedDate}
+              onSelectDate={handleDateSelect}
+              minDate={today}
               disabled={isSubmitting}
-              className="h-12 text-base px-4 rounded-xl border-border/60"
-              {...register('date')}
             />
+
+            <div className="flex items-center gap-3 pt-1">
+              <Label className="text-sm font-medium shrink-0">Time</Label>
+              <Select
+                value={selectedTime}
+                onValueChange={handleTimeChange}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger
+                  aria-label="Time"
+                  className="h-10 w-28 rounded-xl border-primary bg-white text-base text-primary"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white max-h-64">
+                  {Array.from({ length: 24 * 4 }, (_, i) => {
+                    const totalMinutes = i * 15
+                    const h = String(Math.floor(totalMinutes / 60)).padStart(2, '0')
+                    const m = String(totalMinutes % 60).padStart(2, '0')
+                    const value = `${h}:${m}`
+                    return (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="text-primary focus:bg-primary/10"
+                      >
+                        {value}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
             {errors.date && (
               <p className="text-sm text-destructive">
                 {errors.date.message}
