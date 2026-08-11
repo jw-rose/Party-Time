@@ -2,7 +2,7 @@ import 'server-only'
 import { auth } from '@/lib/auth'
 import { db } from '@/server/db'
 import { events, guests } from '@/server/db/schema'
-import { eq, or } from 'drizzle-orm'
+import { and, eq, inArray, or } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
 // Get a single event — checks session first
@@ -28,9 +28,10 @@ export async function getEvent(eventId: string) {
 
   if (!isHost) {
     const guestRecord = await db.query.guests.findFirst({
-      where:
-        eq(guests.eventId, eventId) &&
+      where: and(
+        eq(guests.eventId, eventId),
         eq(guests.userId, session.user.id),
+      ),
     })
 
     if (!guestRecord) {
