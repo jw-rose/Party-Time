@@ -2,7 +2,7 @@ import 'server-only'
 import { auth } from '@/lib/auth'
 import { db } from '@/server/db'
 import { events, guests } from '@/server/db/schema'
-import { eq, or, and, gte, lte } from 'drizzle-orm'
+import { and, eq, gte, inArray, lte, or } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
 // Get a single event — checks session first
@@ -83,12 +83,6 @@ export async function getUserEventsInRange(startDate: Date, endDate: Date) {
     ...attendingRows.filter((e) => !hostedIds.has(e.id)),
   ]
 }
-
-// Get all events for the current user
-export async function getUserEvents() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
 
 // Get all events for a user — both hosted and attending (going/maybe only)
 export async function getUserEvents(userId: string) {
