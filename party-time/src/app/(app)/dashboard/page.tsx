@@ -2,8 +2,9 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/server/db'
-import { events, guests, invites } from '@/server/db/schema'
+import { invites } from '@/server/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
+import { getUserEvents } from '@/server/dal/events.dal'
 import Link from 'next/link'
 import { CalendarDays, MapPin, CalendarPlus, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -20,19 +21,7 @@ export default async function DashboardPage() {
 
   const now = new Date()
 
-  // Events I am hosting
-  const hostedEvents = await db.query.events.findMany({
-    where: eq(events.hostId, session.user.id),
-    orderBy: (events, { asc }) => [asc(events.date)],
-  })
-
-  // Events I am attending as a guest
-  const guestRecords = await db.query.guests.findMany({
-    where: eq(guests.userId, session.user.id),
-    with: { event: true },
-  })
-
-  const attendingEvents = guestRecords.map((g) => g.event)
+  const { hostedEvents, attendingEvents } = await getUserEvents(session.user.id)
 
   // Deduplicate — host should not appear twice for their own event
   const hostedIds = new Set(hostedEvents.map((e) => e.id))

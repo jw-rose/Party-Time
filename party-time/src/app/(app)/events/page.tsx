@@ -1,9 +1,7 @@
 import { auth } from '@/lib/auth'
-import { db } from '@/server/db'
-import { events } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { getUserEvents } from '@/server/dal/events.dal'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { EventCard } from '@/components/features/events/event-card'
@@ -16,11 +14,17 @@ export default async function EventsPage() {
 
   if (!session) redirect('/login')
 
-  const myEvents = await db
-    .select()
-    .from(events)
-    .where(eq(events.hostId, session.user.id))
-    .orderBy(events.date)
+  const { hostedEvents, attendingEvents } = await getUserEvents(session.user.id)
+
+  // Deduplicate — a user who hosts an event won't see it twice
+  const hostedIds = new Set(hostedEvents.map((e) => e.id))
+
+  const myEvents = [
+    ...hostedEvents.map((e) => ({ ...e, isHost: true as const })),
+    ...attendingEvents
+      .filter((e) => !hostedIds.has(e.id))
+      .map((e) => ({ ...e, isHost: false as const })),
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   return (
     <div className="space-y-6">
@@ -28,7 +32,7 @@ export default async function EventsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My events</h1>
           <p className="text-muted-foreground mt-1">
-            Events you are hosting
+            Your events — hosting and attending
           </p>
         </div>
         <Button asChild>
@@ -52,7 +56,7 @@ export default async function EventsPage() {
             <EventCard
               key={event.id}
               event={event}
-              isHost={true}
+              isHost={event.isHost}
             />
           ))}
         </div>
