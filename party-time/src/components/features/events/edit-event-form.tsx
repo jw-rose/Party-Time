@@ -27,19 +27,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { EventDateCalendar } from '@/components/features/events/event-date-calendar'
 import { CalendarDays, MapPin, ImageIcon, MessageCircle, Trash2 } from 'lucide-react'
 import type { Event } from '@/server/db/schema'
 
-export function EditEventForm({ event }: { event: Event }) {
+interface EditEventFormProps {
+  event: Event
+  initialEvents: { id: string; title: string; date: string }[]
+}
+
+export function EditEventForm({ event, initialEvents }: EditEventFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState('')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  // Format date for datetime-local input
-  const formattedDate = new Date(event.date)
-    .toISOString()
-    .slice(0, 16)
+  // Derive initial date and time from the stored event. toISOString() returns
+  // UTC; this mirrors the existing form's behaviour (pre-existing timezone note).
+  const eventDateObj = new Date(event.date)
+  const initialDate = eventDateObj.toISOString().slice(0, 10)
+  const rawHH = parseInt(eventDateObj.toISOString().slice(11, 13), 10)
+  const rawMM = parseInt(eventDateObj.toISOString().slice(14, 16), 10)
+  // Snap to the nearest 15-minute increment so the Select always shows a value.
+  const totalMin = rawHH * 60 + rawMM
+  const snappedMin = Math.min(Math.round(totalMin / 15) * 15, 23 * 60 + 45)
+  const initialTime = `${String(Math.floor(snappedMin / 60)).padStart(2, '0')}:${String(snappedMin % 60).padStart(2, '0')}`
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(initialDate)
+  const [selectedTime, setSelectedTime] = useState(initialTime)
 
   const {
     register,
@@ -52,7 +74,7 @@ export function EditEventForm({ event }: { event: Event }) {
     defaultValues: {
       title: event.title,
       description: event.description ?? '',
-      date: formattedDate,
+      date: `${initialDate}T${initialTime}`,
       location: event.location ?? '',
       photosEnabled: event.photosEnabled,
       chatEnabled: event.chatEnabled,
@@ -61,6 +83,18 @@ export function EditEventForm({ event }: { event: Event }) {
 
   const photosEnabled = watch('photosEnabled')
   const chatEnabled = watch('chatEnabled')
+
+  function handleDateSelect(date: string) {
+    setSelectedDate(date)
+    setValue('date', `${date}T${selectedTime}`, { shouldValidate: true })
+  }
+
+  function handleTimeChange(time: string) {
+    setSelectedTime(time)
+    if (selectedDate) {
+      setValue('date', `${selectedDate}T${time}`, { shouldValidate: true })
+    }
+  }
 
   async function onSubmit(data: UpdateEventFormData) {
     setServerError('')
@@ -117,21 +151,57 @@ export function EditEventForm({ event }: { event: Event }) {
               )}
             </div>
 
-            {/* Date */}
+            {/* Date & time */}
             <div className="space-y-2">
-              <Label htmlFor="date">
+              <Label>
                 <span className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4" />
-                  Date and time
+                  Date &amp; time
                 </span>
               </Label>
-              <Input
-                id="date"
-                type="datetime-local"
+
+              <EventDateCalendar
+                initialEvents={initialEvents}
+                selectedDate={selectedDate}
+                onSelectDate={handleDateSelect}
+                initialMonth={eventDateObj}
+                excludeEventId={event.id}
                 disabled={isSubmitting}
-                className="h-12 text-base"
-                {...register('date')}
               />
+
+              <div className="flex items-center gap-3 pt-1">
+                <Label className="text-sm font-medium shrink-0">Time</Label>
+                <Select
+                  value={selectedTime}
+                  onValueChange={handleTimeChange}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger
+                    aria-label="Time"
+                    className="h-10 w-28 rounded-xl border-primary bg-white text-base text-primary"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white max-h-64">
+                    {Array.from({ length: 24 * 4 }, (_, i) => {
+                      const totalMinutes = i * 15
+                      const h = String(Math.floor(totalMinutes / 60)).padStart(2, '0')
+                      const m = String(totalMinutes % 60).padStart(2, '0')
+                      const value = `${h}:${m}`
+                      return (
+                        <SelectItem
+                          key={value}
+                          value={value}
+                          className="text-primary focus:bg-primary/10"
+                        >
+                          {value}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {errors.date && (
                 <p className="text-sm text-destructive">
                   {errors.date.message}
