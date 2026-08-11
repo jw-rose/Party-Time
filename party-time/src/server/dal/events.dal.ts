@@ -2,11 +2,7 @@ import 'server-only'
 import { auth } from '@/lib/auth'
 import { db } from '@/server/db'
 import { events, guests } from '@/server/db/schema'
-<<<<<<< HEAD
 import { and, eq, gte, inArray, lte, or } from 'drizzle-orm'
-=======
-import { eq, or, and, gte, lte } from 'drizzle-orm'
->>>>>>> cc315cc2f17d094aa678adccc6e9a0fcb7920778
 import { headers } from 'next/headers'
 
 // Get a single event — checks session first
@@ -50,10 +46,6 @@ export async function getEvent(eventId: string) {
 // 'declined' and 'pending' are excluded — declined is an explicit no,
 // and pending means the user hasn't responded yet.
 export const ATTENDING_STATUSES = ['going', 'maybe'] as const
-<<<<<<< HEAD
-
-=======
->>>>>>> cc315cc2f17d094aa678adccc6e9a0fcb7920778
 // Get events in a date range for the current user (hosted + attending)
 export async function getUserEventsInRange(startDate: Date, endDate: Date) {
   const session = await auth.api.getSession({
@@ -92,15 +84,6 @@ export async function getUserEventsInRange(startDate: Date, endDate: Date) {
   ]
 }
 
-<<<<<<< HEAD
-=======
-// Get all events for the current user
-export async function getUserEvents() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
->>>>>>> cc315cc2f17d094aa678adccc6e9a0fcb7920778
 // Get all events for a user — both hosted and attending (going/maybe only)
 export async function getUserEvents(userId: string) {
   const [hostedEvents, guestRecords] = await Promise.all([
