@@ -42,19 +42,27 @@ export async function getEvent(eventId: string) {
   return { event, userId: session.user.id }
 }
 
-// Get all events for the current user
-export async function getUserEvents() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+// RSVP statuses that count as "attending" for list/dashboard purposes.
+// 'declined' and 'pending' are excluded — declined is an explicit no,
+// and pending means the user hasn't responded yet.
+export const ATTENDING_STATUSES = ['going', 'maybe'] as const
 
-  if (!session) {
-    throw new Error('UNAUTHORIZED')
-  }
+// Get all events for a user — both hosted and attending (going/maybe only)
+export async function getUserEvents(userId: string) {
+  const [hostedEvents, guestRecords] = await Promise.all([
+    db.query.events.findMany({
+      where: eq(events.hostId, userId),
+    }),
+    db.query.guests.findMany({
+      where: and(
+        eq(guests.userId, userId),
+        inArray(guests.status, [...ATTENDING_STATUSES]),
+      ),
+      with: { event: true },
+    }),
+  ])
 
-  const hostedEvents = await db.query.events.findMany({
-    where: eq(events.hostId, session.user.id),
-  })
+  const attendingEvents = guestRecords.map((g) => g.event)
 
-  return { hostedEvents, userId: session.user.id }
+  return { hostedEvents, attendingEvents, userId }
 }
