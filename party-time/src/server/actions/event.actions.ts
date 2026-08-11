@@ -7,6 +7,20 @@ import { eq } from 'drizzle-orm'
 import { createEventSchema, updateEventSchema } from '@/lib/validations'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { getUserEventsInRange } from '@/server/dal/events.dal'
+
+export async function getCalendarEvents(start: string, end: string) {
+  try {
+    const rows = await getUserEventsInRange(new Date(start), new Date(end))
+    return rows.map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: (e.date instanceof Date ? e.date : new Date(e.date)).toISOString(),
+    }))
+  } catch {
+    return []
+  }
+}
 
 export async function createEvent(formData: unknown) {
   const session = await auth.api.getSession({
