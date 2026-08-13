@@ -23,6 +23,8 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-status-hosting: var(--status-hosting);
+  --color-status-attending: var(--status-attending);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -79,6 +81,10 @@
   --chart-4: oklch(0.78 0.08 210);
   --chart-5: oklch(0.85 0.04 220);
 
+  /* Status colours */
+  --status-hosting: oklch(0.55 0.22 264);
+  --status-attending: oklch(0.75 0.18 75);
+
   --radius: 0.75rem;
 
   /* Sidebar */
@@ -122,6 +128,10 @@
   --chart-3: oklch(0.72 0.12 200);
   --chart-4: oklch(0.78 0.08 210);
   --chart-5: oklch(0.85 0.04 220);
+
+  /* Status colours */
+  --status-hosting: oklch(0.60 0.22 264);
+  --status-attending: oklch(0.78 0.18 75);
 
   /* Sidebar */
   --sidebar: oklch(0.17 0.03 255);
