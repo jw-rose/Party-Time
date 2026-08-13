@@ -17,6 +17,7 @@ export async function getEvent(eventId: string) {
 
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),
+    with: { host: true },
   })
 
   if (!event) {
