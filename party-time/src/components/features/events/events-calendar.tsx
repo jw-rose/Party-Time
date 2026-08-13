@@ -170,7 +170,7 @@ export function EventsCalendar({ initialEvents, initialMonth }: EventsCalendarPr
                   aria-label={ariaLabel}
                   className={[
                     cellBase,
-                    'cursor-pointer hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50',
+                    'h-full cursor-pointer hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50',
                   ].join(' ')}
                 >
                   <span
