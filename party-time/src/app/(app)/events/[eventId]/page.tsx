@@ -91,7 +91,7 @@ export default async function EventPage({
             </span>
           </div>
           <span className="text-sm text-muted-foreground">
-            {userIsHost ? 'You are hosting' : `Hosted by someone`}
+            {userIsHost ? 'You are hosting' : `Hosted by ${event.host.name}`}
           </span>
         </div>
 
