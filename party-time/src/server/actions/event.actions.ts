@@ -16,6 +16,9 @@ export async function getCalendarEvents(start: string, end: string) {
       id: e.id,
       title: e.title,
       date: (e.date instanceof Date ? e.date : new Date(e.date)).toISOString(),
+      location: e.location,
+      hostName: e.hostName,
+      isHost: e.isHost,
     }))
   } catch {
     return []
