@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { escapeHtml } from '@/lib/utils'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -16,7 +17,7 @@ export async function sendInviteEmail({
   const { error } = await resend.emails.send({
     from: 'PartyUp <noreply@party-up.app>',
     to,
-    subject: `You are invited to ${eventTitle}`,
+    subject: `You are invited to ${escapeHtml(eventTitle)}`,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
         <h1 style="font-size: 24px; font-weight: bold;">
@@ -24,8 +25,8 @@ export async function sendInviteEmail({
         </h1>
 
         <p style="color: #666; line-height: 1.5;">
-          ${hostName} has invited you to
-          <strong>${eventTitle}</strong>.
+          ${escapeHtml(hostName)} has invited you to
+          <strong>${escapeHtml(eventTitle)}</strong>.
         </p>
 
         <a

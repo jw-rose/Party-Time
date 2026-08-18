@@ -80,6 +80,11 @@ export const inviteSchema = z.object({
     .email('Please enter a valid email address'),
 })
 
+export const acceptInviteSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  status: z.enum(['going', 'maybe', 'declined']).default('going'),
+})
+
 export const updateEventSchema = z.object({
   title: z
     .string()
