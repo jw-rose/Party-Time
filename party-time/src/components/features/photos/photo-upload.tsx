@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { UploadDropzone } from '@/lib/uploadthing'
-import { savePhoto } from '@/server/actions/photo.actions'
 import { toast } from 'sonner'
 
 export function PhotoUpload({ eventId }: { eventId: string }) {
@@ -11,10 +10,8 @@ export function PhotoUpload({ eventId }: { eventId: string }) {
   return (
     <UploadDropzone
       endpoint="eventPhotoUploader"
-      onClientUploadComplete={async (res) => {
-        for (const file of res) {
-          await savePhoto(eventId, file.url, file.key)
-        }
+      input={{ eventId }}
+      onClientUploadComplete={() => {
         toast.success('Photos uploaded successfully')
         router.refresh()
       }}
