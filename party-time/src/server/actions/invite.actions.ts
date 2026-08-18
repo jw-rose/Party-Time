@@ -3,7 +3,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/server/db'
 import { invites, guests, events } from '@/server/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, gt, count } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { inviteSchema, acceptInviteSchema } from '@/lib/validations'
 import {
@@ -36,6 +36,19 @@ export async function sendInvite(eventId: string, formData: unknown) {
 
   if (!event) return { error: 'Event not found' }
   if (event.hostId !== session.user.id) return { error: 'Unauthorized' }
+
+  // Enforce hourly invite cap per host (20/hour) to prevent email bombing.
+  // NOTE: invites has no index on (created_by, created_at) — this is a full
+  // table scan. Acceptable at current scale; add an index if invite volume grows.
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  const [{ value: recentCount }] = await db
+    .select({ value: count() })
+    .from(invites)
+    .where(and(eq(invites.createdBy, session.user.id), gt(invites.createdAt, oneHourAgo)))
+
+  if (recentCount >= 20) {
+    return { error: 'You have reached the invite limit. Please wait before sending more invites.' }
+  }
 
   // Generate token
   const token = generateInviteToken()

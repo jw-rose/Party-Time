@@ -3,6 +3,8 @@ import {
   text,
   boolean,
   timestamp,
+  integer,
+  bigint,
   pgEnum,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
@@ -15,6 +17,18 @@ export const rsvpStatusEnum = pgEnum('rsvp_status', [
   'declined',
   'pending',
 ])
+
+// ── Better Auth rate limit table ───────────────────────────────────────────
+// Backing store for Better Auth's built-in rate limiter (storage: "database").
+// Property names must match Better Auth's internal field names exactly so the
+// drizzle adapter can resolve columns by name.
+
+export const rateLimits = pgTable('rate_limit', {
+  id: text('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  count: integer('count').notNull(),
+  lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
+})
 
 // ── Better Auth tables ─────────────────────────────────────────────────────
 

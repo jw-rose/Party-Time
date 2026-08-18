@@ -15,6 +15,13 @@
       "when": 1777464954758,
       "tag": "0001_plain_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787066652533,
+      "tag": "0002_jazzy_cyclops",
+      "breakpoints": true
     }
   ]
 }

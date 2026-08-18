@@ -27,8 +27,12 @@ export const auth = betterAuth({
       session: schema.sessions,
       account: schema.accounts,
       verification: schema.verifications,
+      rateLimit: schema.rateLimits,
     },
   }),
+  rateLimit: {
+    storage: 'database',
+  },
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
