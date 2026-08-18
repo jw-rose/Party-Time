@@ -62,7 +62,9 @@ export async function sendInvite(eventId: string, formData: unknown) {
     })
   } catch {
     // Log invite URL to terminal for dev testing
-    console.log('📨 Invite URL (dev):', inviteUrl)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📨 Invite URL (dev):', inviteUrl)
+    }
   }
 
   return { success: true }

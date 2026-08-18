@@ -33,7 +33,9 @@ export const auth = betterAuth({
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
       // In dev — log to terminal as fallback
-      console.log('🔑 Password reset URL (dev):', url)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔑 Password reset URL (dev):', url)
+      }
 
       // Send via Resend
       await resend.emails.send({
