@@ -5,7 +5,7 @@ import { db } from '@/server/db'
 import { invites, guests, events } from '@/server/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { headers } from 'next/headers'
-import { inviteSchema } from '@/lib/validations'
+import { inviteSchema, acceptInviteSchema } from '@/lib/validations'
 import {
   generateInviteToken,
   generateExpiryDate,
@@ -75,6 +75,11 @@ export async function acceptInvite(
   token: string,
   status: 'going' | 'maybe' | 'declined' = 'going'
 ) {
+  const parsed = acceptInviteSchema.safeParse({ token, status })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
+  }
+
   const session = await auth.api.getSession({
     headers: await headers(),
   })

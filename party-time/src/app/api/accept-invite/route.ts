@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { db } from '@/server/db'
 import { invites, guests } from '@/server/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { acceptInviteSchema } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({
@@ -14,11 +15,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { token, status = 'going' } = await request.json()
-
-  if (!token) {
-    return NextResponse.json({ error: 'Token required' }, { status: 400 })
+  const body = await request.json()
+  const parsed = acceptInviteSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 }
+    )
   }
+  const { token, status } = parsed.data
 
   const invite = await db.query.invites.findFirst({
     where: eq(invites.token, token),

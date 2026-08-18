@@ -5,6 +5,7 @@ import {
   createEventSchema,
   inviteSchema,
   createPostSchema,
+  acceptInviteSchema,
 } from '@/lib/validations'
 
 describe('validations', () => {
@@ -133,6 +134,41 @@ describe('validations', () => {
 
     it('fails with invalid email', () => {
       const result = inviteSchema.safeParse({ email: 'not-valid' })
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('acceptInviteSchema', () => {
+    it('passes with a valid token and status', () => {
+      const result = acceptInviteSchema.safeParse({ token: 'abc123', status: 'going' })
+      expect(result.success).toBe(true)
+    })
+
+    it('defaults status to going when omitted', () => {
+      const result = acceptInviteSchema.safeParse({ token: 'abc123' })
+      expect(result.success).toBe(true)
+      if (result.success) expect(result.data.status).toBe('going')
+    })
+
+    it('passes with each valid status value', () => {
+      for (const status of ['going', 'maybe', 'declined'] as const) {
+        const result = acceptInviteSchema.safeParse({ token: 'abc123', status })
+        expect(result.success).toBe(true)
+      }
+    })
+
+    it('fails with an invalid status value', () => {
+      const result = acceptInviteSchema.safeParse({ token: 'abc123', status: 'admin' })
+      expect(result.success).toBe(false)
+    })
+
+    it('fails with an empty token', () => {
+      const result = acceptInviteSchema.safeParse({ token: '', status: 'going' })
+      expect(result.success).toBe(false)
+    })
+
+    it('fails when token is missing', () => {
+      const result = acceptInviteSchema.safeParse({ status: 'going' })
       expect(result.success).toBe(false)
     })
   })

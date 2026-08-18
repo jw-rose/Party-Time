@@ -30,6 +30,15 @@ describe('acceptInvite', () => {
     vi.clearAllMocks()
   })
 
+  it('returns an error and does not hit the DB when status is not a valid enum value', async () => {
+    const result = await acceptInvite('test-token', 'admin' as never)
+
+    expect(result).toEqual({ error: expect.stringContaining('Invalid') })
+    expect(db.query.invites.findFirst).not.toHaveBeenCalled()
+    expect(db.insert).not.toHaveBeenCalled()
+    expect(db.update).not.toHaveBeenCalled()
+  })
+
   it('returns an error and creates no guest record when session email does not match invite email', async () => {
     // Session email is uppercase to also exercise the case-insensitive comparison
     vi.mocked(auth.api.getSession).mockResolvedValue({
