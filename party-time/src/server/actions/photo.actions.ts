@@ -55,7 +55,7 @@ export async function deletePhoto(photoId: string, eventId: string) {
   if (!session) return { error: 'Unauthorized' }
 
   const photo = await db.query.photos.findFirst({
-    where: eq(photos.id, photoId),
+    where: and(eq(photos.id, photoId), eq(photos.eventId, eventId)),
   })
 
   if (!photo) return { error: 'Photo not found' }
@@ -65,7 +65,9 @@ export async function deletePhoto(photoId: string, eventId: string) {
     where: eq(events.id, eventId),
   })
 
-  const isHost = event?.hostId === session.user.id
+  if (!event) return { error: 'Event not found' }
+
+  const isHost = event.hostId === session.user.id
   const isUploader = photo.uploadedBy === session.user.id
 
   if (!isHost && !isUploader) return { error: 'Forbidden' }
