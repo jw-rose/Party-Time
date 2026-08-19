@@ -6,8 +6,6 @@ import { events, invites } from '@/server/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { InviteForm } from '@/components/features/invites/invite-form'
 import { InviteList } from '@/components/features/invites/invite-list'
-import { QRInviteCard } from '@/components/features/invites/qr-invite-card'
-import { buildInviteUrl } from '@/server/services/invite.service'
 
 export default async function InvitePage({
   params,
@@ -34,12 +32,6 @@ export default async function InvitePage({
     orderBy: [desc(invites.expiresAt)],
   })
 
-  // Use the most recent invite token for the QR code
-  const latestInvite = pendingInvites[0]
-  const qrInviteUrl = latestInvite
-    ? buildInviteUrl(latestInvite.token)
-    : buildInviteUrl('no-invites-yet')
-
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <div>
@@ -49,10 +41,6 @@ export default async function InvitePage({
         </p>
       </div>
       <InviteForm eventId={eventId} />
-      <QRInviteCard
-        eventTitle={event.title}
-        inviteUrl={qrInviteUrl}
-      />
       <InviteList invites={pendingInvites} eventId={eventId} />
     </div>
   )

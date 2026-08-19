@@ -85,18 +85,6 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
           </p>
         </div>
 
-        {/* Progress bar */}
-        <div className="space-y-1.5">
-          <div className="flex gap-1.5">
-            <div className="h-1 flex-1 rounded-full bg-primary" />
-            <div className="h-1 flex-1 rounded-full bg-primary/30" />
-            <div className="h-1 flex-1 rounded-full bg-primary/15" />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Step 2 of 3 — Details
-          </p>
-        </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
@@ -109,7 +97,7 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
               id="title"
               placeholder="Rooftop Birthday Bash"
               disabled={isSubmitting}
-              className="h-12 text-base px-4 rounded-xl border-border/60"
+              className="h-12 text-base px-4 rounded-xl border-primary"
               {...register('title')}
             />
             {errors.title && (
@@ -188,7 +176,7 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
               id="location"
               placeholder="Rooftop Bar Marais, Paris"
               disabled={isSubmitting}
-              className="h-12 text-base px-4 rounded-xl border-border/60"
+              className="h-12 text-base px-4 rounded-xl border-primary"
               {...register('location')}
             />
             {errors.location && (
@@ -210,7 +198,7 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
               id="description"
               placeholder="Smart casual dress code, rooftop bar..."
               disabled={isSubmitting}
-              className="resize-none rounded-xl border-border/60 text-base"
+              className="resize-none rounded-xl border-primary text-base"
               rows={3}
               {...register('description')}
             />
