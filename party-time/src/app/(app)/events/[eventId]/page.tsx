@@ -7,7 +7,6 @@ import { db } from '@/server/db'
 import { guests, photos } from '@/server/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { CalendarDays, MapPin, UserPlus, Edit } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -81,7 +80,7 @@ export default async function EventPage({
     <div className="space-y-0 -mx-4">
 
       {/* Hero header */}
-      <div className="px-4 pt-4 pb-5 space-y-3">
+      <div className={`px-4 pt-4 pb-5 space-y-3${userIsHost ? ' bg-primary/10' : ''}`}>
 
         {/* Host label */}
         <div className="flex items-center gap-2">
@@ -151,14 +150,22 @@ export default async function EventPage({
             )}
           </div>
 
-          {/* Action button */}
+          {/* Action buttons */}
           {userIsHost ? (
-            <Button asChild size="sm" className="rounded-full px-4">
-              <Link href={`/events/${event.id}/invite`}>
-                <UserPlus className="h-4 w-4 mr-1.5" />
-                Invite
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild size="sm" variant="outline" className="rounded-full px-4">
+                <Link href={`/events/${event.id}/edit`}>
+                  <Edit className="h-4 w-4 mr-1.5" />
+                  Edit event
+                </Link>
+              </Button>
+              <Button asChild size="sm" className="rounded-full px-4">
+                <Link href={`/events/${event.id}/invite`}>
+                  <UserPlus className="h-4 w-4 mr-1.5" />
+                  Invite
+                </Link>
+              </Button>
+            </div>
           ) : (
             <Button
               asChild
@@ -176,23 +183,23 @@ export default async function EventPage({
 
       {/* Tabs */}
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className="w-full rounded-none border-b bg-background h-12 px-4 justify-start gap-0">
+        <TabsList className="flex mx-4 my-3 h-10 rounded-full bg-muted p-1 gap-0.5 w-[calc(100%-2rem)]">
           <TabsTrigger
             value="info"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-full"
+            className="flex-1 rounded-full text-sm font-medium text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
           >
             Info
           </TabsTrigger>
           <TabsTrigger
             value="guests"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-full"
+            className="flex-1 rounded-full text-sm font-medium text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
           >
             Guests
           </TabsTrigger>
           {userCanUpload && (
             <TabsTrigger
               value="photos"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-full"
+              className="flex-1 rounded-full text-sm font-medium text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
             >
               Photos
             </TabsTrigger>
@@ -200,7 +207,7 @@ export default async function EventPage({
           {userCanChat && (
             <TabsTrigger
               value="chat"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-full"
+              className="flex-1 rounded-full text-sm font-medium text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
             >
               Chat
             </TabsTrigger>
@@ -209,35 +216,6 @@ export default async function EventPage({
 
         {/* ── INFO TAB ── */}
         <TabsContent value="info" className="px-4 pt-4 space-y-4">
-
-          {/* Host actions panel */}
-          {userIsHost && (
-            <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-              <CardContent className="p-4 space-y-3">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
-                  Host actions
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild size="sm" className="rounded-lg">
-                    <Link href={`/events/${event.id}/edit`}>
-                      <Edit className="h-3.5 w-3.5 mr-1.5" />
-                      Edit event
-                    </Link>
-                  </Button>
-                  <Button asChild size="sm" variant="outline" className="rounded-lg">
-                    <Link href={`/events/${event.id}/invite`}>
-                      Share link
-                    </Link>
-                  </Button>
-                  <Button asChild size="sm" variant="outline" className="rounded-lg">
-                    <Link href={`/events/${event.id}/invite`}>
-                      QR code
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Guest breakdown — host only */}
           {userIsHost && (
