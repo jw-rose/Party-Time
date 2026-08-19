@@ -209,7 +209,12 @@ export function EventDateCalendar({
                     className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 shrink-0"
                     aria-hidden="true"
                   />
-                  <span className="text-sm">{ev.title}</span>
+                  <div>
+                    <p className="text-sm">{ev.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(ev.date), 'HH:mm')}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
