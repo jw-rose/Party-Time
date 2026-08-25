@@ -17,9 +17,21 @@ services:
       - UPLOADTHING_APP_ID=${UPLOADTHING_APP_ID}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEON_LOCAL_HOST=db
+      - NEON_LOCAL_DATABASE_URL=${NEON_LOCAL_DATABASE_URL}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/.next
     command: pnpm dev
     restart: unless-stopped
+
+  db:
+    image: neondatabase/neon_local:latest
+    profiles: [dev]
+    ports:
+      - "5432:5432"
+    environment:
+      - NEON_API_KEY=${NEON_API_KEY}
+      - NEON_PROJECT_ID=${NEON_PROJECT_ID}
+      - NEON_PARENT_BRANCH_ID=${NEON_PARENT_BRANCH_ID}
