@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { EventDateCalendar } from '@/components/features/events/event-date-calendar'
+import { formatEventDateKey, formatEventTime } from '@/lib/date-format'
 import { CalendarDays, MapPin, ImageIcon, MessageCircle, Trash2 } from 'lucide-react'
 import type { Event } from '@/server/db/schema'
 
@@ -49,13 +50,13 @@ export function EditEventForm({ event, initialEvents }: EditEventFormProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  // Derive initial date and time from the stored event. toISOString() returns
-  // UTC; this mirrors the existing form's behaviour (pre-existing timezone note).
+  // Derive the initial picker values from the stored UTC instant, evaluated in
+  // the event's display zone (Europe/Paris) so they line up with what the rest
+  // of the app shows. defaultValues.date below carries the exact stored instant
+  // as an ISO string, so saving without touching the pickers is a no-op.
   const eventDateObj = new Date(event.date)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const initialDate = `${eventDateObj.getFullYear()}-${pad(eventDateObj.getMonth() + 1)}-${pad(eventDateObj.getDate())}`
-  const rawHH = eventDateObj.getHours()
-  const rawMM = eventDateObj.getMinutes()
+  const initialDate = formatEventDateKey(event.date)
+  const [rawHH, rawMM] = formatEventTime(event.date).split(':').map(Number)
   // Snap to the nearest 15-minute increment so the Select always shows a value.
   const totalMin = rawHH * 60 + rawMM
   const snappedMin = Math.min(Math.round(totalMin / 15) * 15, 23 * 60 + 45)
@@ -75,7 +76,7 @@ export function EditEventForm({ event, initialEvents }: EditEventFormProps) {
     defaultValues: {
       title: event.title,
       description: event.description ?? '',
-      date: `${initialDate}T${initialTime}`,
+      date: eventDateObj.toISOString(),
       location: event.location ?? '',
       photosEnabled: event.photosEnabled,
       chatEnabled: event.chatEnabled,
