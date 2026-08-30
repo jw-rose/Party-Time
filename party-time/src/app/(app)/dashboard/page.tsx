@@ -44,7 +44,7 @@ export default async function DashboardPage() {
   // Pending invites for this user's email
   const pendingInvites = await db.query.invites.findMany({
     where: and(
-      eq(invites.email, session.user.email),
+      eq(invites.email, session.user.email.toLowerCase()),
       isNull(invites.usedAt),
     ),
     with: { event: true },

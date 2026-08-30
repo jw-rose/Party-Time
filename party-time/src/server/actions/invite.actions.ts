@@ -28,6 +28,10 @@ export async function sendInvite(eventId: string, formData: unknown) {
   }
 
   const { email } = result.data
+  // Store invite emails lowercased so lookups (dashboard, accept flow) match
+  // regardless of the casing the host typed. The outbound email keeps the
+  // original casing.
+  const normalizedEmail = email.toLowerCase()
 
   // Check user is host
   const event = await db.query.events.findFirst({
@@ -60,7 +64,7 @@ export async function sendInvite(eventId: string, formData: unknown) {
     id: crypto.randomUUID(),
     eventId,
     createdBy: session.user.id,
-    email,
+    email: normalizedEmail,
     token,
     expiresAt,
   })
