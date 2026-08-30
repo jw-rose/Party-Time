@@ -51,13 +51,15 @@ export function CreateEventForm({ initialEvents }: CreateEventFormProps) {
 
   function handleDateSelect(date: string) {
     setSelectedDate(date)
-    setValue('date', `${date}T${selectedTime}`, { shouldValidate: true })
+    const localDate = new Date(`${date}T${selectedTime}`)
+    setValue('date', localDate.toISOString(), { shouldValidate: true })
   }
 
   function handleTimeChange(time: string) {
     setSelectedTime(time)
     if (selectedDate) {
-      setValue('date', `${selectedDate}T${time}`, { shouldValidate: true })
+      const localDate = new Date(`${selectedDate}T${time}`)
+      setValue('date', localDate.toISOString(), { shouldValidate: true })
     }
   }
 

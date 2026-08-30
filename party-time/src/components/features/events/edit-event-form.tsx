@@ -52,9 +52,10 @@ export function EditEventForm({ event, initialEvents }: EditEventFormProps) {
   // Derive initial date and time from the stored event. toISOString() returns
   // UTC; this mirrors the existing form's behaviour (pre-existing timezone note).
   const eventDateObj = new Date(event.date)
-  const initialDate = eventDateObj.toISOString().slice(0, 10)
-  const rawHH = parseInt(eventDateObj.toISOString().slice(11, 13), 10)
-  const rawMM = parseInt(eventDateObj.toISOString().slice(14, 16), 10)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const initialDate = `${eventDateObj.getFullYear()}-${pad(eventDateObj.getMonth() + 1)}-${pad(eventDateObj.getDate())}`
+  const rawHH = eventDateObj.getHours()
+  const rawMM = eventDateObj.getMinutes()
   // Snap to the nearest 15-minute increment so the Select always shows a value.
   const totalMin = rawHH * 60 + rawMM
   const snappedMin = Math.min(Math.round(totalMin / 15) * 15, 23 * 60 + 45)
@@ -86,13 +87,15 @@ export function EditEventForm({ event, initialEvents }: EditEventFormProps) {
 
   function handleDateSelect(date: string) {
     setSelectedDate(date)
-    setValue('date', `${date}T${selectedTime}`, { shouldValidate: true })
+    const localDate = new Date(`${date}T${selectedTime}`)
+    setValue('date', localDate.toISOString(), { shouldValidate: true })
   }
 
   function handleTimeChange(time: string) {
     setSelectedTime(time)
     if (selectedDate) {
-      setValue('date', `${selectedDate}T${time}`, { shouldValidate: true })
+      const localDate = new Date(`${selectedDate}T${time}`)
+      setValue('date', localDate.toISOString(), { shouldValidate: true })
     }
   }
 
