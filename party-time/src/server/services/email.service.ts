@@ -17,7 +17,7 @@ export async function sendInviteEmail({
   const { error } = await resend.emails.send({
     from: 'PartyUp <noreply@party-up.app>',
     to,
-    subject: `You are invited to ${escapeHtml(eventTitle)}`,
+    subject: `You are invited to ${eventTitle}`,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
         <h1 style="font-size: 24px; font-weight: bold;">
