@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
-
-const HOST_EMAIL = 'josh1989rose@gmail.com'
+import { E2E_HOST_EMAIL as HOST_EMAIL } from '@/tests/fixtures/users'
 const HOST_PASSWORD = 'Ikamoa39!'
 
 async function loginAsHost(page: any) {

@@ -1,3 +1,6 @@
+// E2e test account credentials — seeded in the test database, not real personal addresses
+export const E2E_HOST_EMAIL = 'josh1989rose@gmail.com'
+
 export const mockUser = {
   id: 'user-host-123',
   name: 'Jamie Host',

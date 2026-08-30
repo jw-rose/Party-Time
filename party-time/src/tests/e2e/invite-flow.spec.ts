@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
-
-const HOST_EMAIL = 'josh1989rose@gmail.com'
+import { E2E_HOST_EMAIL as HOST_EMAIL } from '@/tests/fixtures/users'
 const HOST_PASSWORD = 'Ikamoa39!'
 const GUEST_EMAIL = 'josh89rose@icloud.com'
 const GUEST_PASSWORD = 'Test!1234!'
@@ -88,6 +87,39 @@ test.describe.serial('Invite flow', () => {
 
     const errorText = page.locator('h2', { hasText: 'Invalid invite' })
     await expect(errorText).toBeVisible({ timeout: 10000 })
+  })
+
+  test('invite sent to existing account redirects to login not register', async ({ browser }) => {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+
+    // Token must be for an invite sent to HOST_EMAIL (an account that already exists).
+    // SELECT token FROM invites WHERE email = E2E_HOST_EMAIL ORDER BY created_at DESC LIMIT 1;
+    const INVITE_TOKEN = process.env.TEST_EXISTING_USER_INVITE_TOKEN ?? 'replace-with-real-token'
+    const INVITE_URL = `/invite/${INVITE_TOKEN}`
+
+    await page.goto(INVITE_URL)
+
+    // Should redirect to /login, not /register
+    await page.waitForURL(/\/login/, { timeout: 10000 })
+    expect(page.url()).toContain('/login')
+    expect(page.url()).not.toContain('/register')
+    expect(page.url()).toContain('callbackUrl')
+    expect(page.url()).toContain(encodeURIComponent(`/invite/${INVITE_TOKEN}`))
+
+    // Sign in with the existing account
+    await page.fill('#email', HOST_EMAIL)
+    await page.fill('#password', HOST_PASSWORD)
+    await page.click('button[type="submit"]')
+
+    // Should land back on the invite RSVP page, not /dashboard
+    await page.waitForURL(new RegExp(`/invite/${INVITE_TOKEN}`), { timeout: 15000 })
+    expect(page.url()).toContain(`/invite/${INVITE_TOKEN}`)
+
+    const goingButton = page.locator('button', { hasText: "Yes, I'm going!" })
+    await expect(goingButton).toBeVisible({ timeout: 15000 })
+
+    await context.close()
   })
 
   test('guest with no account can register via invite link and RSVP', async ({ browser }) => {
