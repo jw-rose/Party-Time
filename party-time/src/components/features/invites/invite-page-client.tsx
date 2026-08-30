@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Check, Clock, X, CalendarDays, MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { formatEventDate, formatEventTime } from '@/lib/date-format'
 
 type InviteData = {
   token: string
@@ -206,20 +207,14 @@ export function InvitePageClient({ token }: { token: string }) {
     )
   )
 
-  const formattedDate = new Date(invite.event.date).toLocaleDateString(
-    'en-GB',
-    {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }
-  )
+  const formattedDate = formatEventDate(invite.event.date, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
-  const formattedTime = new Date(invite.event.date).toLocaleTimeString(
-    'en-GB',
-    { hour: '2-digit', minute: '2-digit' }
-  )
+  const formattedTime = formatEventTime(invite.event.date)
 
   return (
     <div className="min-h-screen bg-background px-6 py-10">

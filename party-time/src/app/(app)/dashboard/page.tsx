@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { CalendarDays, MapPin, CalendarPlus, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { formatEventDate } from '@/lib/date-format'
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -168,7 +169,7 @@ export default async function DashboardPage() {
                     {event.title}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(event.date).toLocaleDateString('en-GB', {
+                    {formatEventDate(event.date, {
                       day: 'numeric',
                       month: 'short',
                     })}
@@ -216,10 +217,8 @@ function EventCard({
   }
   role: 'hosting' | 'attending'
 }) {
-  const day = new Date(event.date).getDate()
-  const month = new Date(event.date)
-    .toLocaleDateString('en-GB', { month: 'short' })
-    .toUpperCase()
+  const day = formatEventDate(event.date, { day: 'numeric' })
+  const month = formatEventDate(event.date, { month: 'short' }).toUpperCase()
 
   return (
     <Link href={`/events/${event.id}`}>

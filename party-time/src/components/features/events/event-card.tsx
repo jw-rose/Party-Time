@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { CalendarDays, MapPin, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { formatEventDate, formatEventTime } from '@/lib/date-format'
 import type { Event } from '@/server/db/schema'
 
 interface EventCardProps {
@@ -10,17 +11,14 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, isHost }: EventCardProps) {
-  const formattedDate = new Date(event.date).toLocaleDateString('en-GB', {
+  const formattedDate = formatEventDate(event.date, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   })
 
-  const formattedTime = new Date(event.date).toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const formattedTime = formatEventTime(event.date)
 
   return (
     <Link href={`/events/${event.id}`}>

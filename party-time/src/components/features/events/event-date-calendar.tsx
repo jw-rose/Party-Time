@@ -16,6 +16,7 @@ import {
 } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getCalendarEvents } from '@/server/actions/event.actions'
+import { formatEventDateKey, formatEventTime } from '@/lib/date-format'
 
 interface CalendarEvent {
   id: string
@@ -59,7 +60,7 @@ export function EventDateCalendar({
     const key = format(day, 'yyyy-MM-dd')
     return displayedEvents.filter(
       (e) =>
-        format(new Date(e.date), 'yyyy-MM-dd') === key &&
+        formatEventDateKey(e.date) === key &&
         (!excludeEventId || e.id !== excludeEventId)
     )
   }
@@ -212,7 +213,7 @@ export function EventDateCalendar({
                   <div>
                     <p className="text-sm">{ev.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(ev.date), 'HH:mm')}
+                      {formatEventTime(ev.date)}
                     </p>
                   </div>
                 </li>

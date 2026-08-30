@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
+import { formatEventDate } from '@/lib/date-format'
 import { CreatePostForm } from '@/components/features/events/create-post-form'
 import { EventPostCard } from '@/components/features/events/event-post'
 import { RSVPButton } from '@/components/features/events/rsvp-button'
@@ -68,7 +69,7 @@ export default async function EventPage({
   const isHostUser = userIsHost
   const session = { user: { id: userId } }
 
-  const formattedDate = new Date(event.date).toLocaleDateString('en-GB', {
+  const formattedDate = formatEventDate(event.date, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

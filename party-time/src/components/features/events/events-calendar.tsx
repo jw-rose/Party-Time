@@ -16,6 +16,7 @@ import {
 } from 'date-fns'
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
 import { getCalendarEvents } from '@/server/actions/event.actions'
+import { formatEventDateKey, formatEventTime } from '@/lib/date-format'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 
 export interface CalendarEventWithHost {
@@ -49,7 +50,7 @@ export function EventsCalendar({ initialEvents, initialMonth }: EventsCalendarPr
   function eventsForDay(day: Date): CalendarEventWithHost[] {
     const key = format(day, 'yyyy-MM-dd')
     return displayedEvents
-      .filter((e) => format(new Date(e.date), 'yyyy-MM-dd') === key)
+      .filter((e) => formatEventDateKey(e.date) === key)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   }
 
@@ -219,7 +220,7 @@ export function EventsCalendar({ initialEvents, initialMonth }: EventsCalendarPr
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{ev.title}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {format(new Date(ev.date), 'HH:mm')}
+                            {formatEventTime(ev.date)}
                           </p>
                           {ev.location && (
                             <div className="flex items-center gap-1 mt-0.5">
