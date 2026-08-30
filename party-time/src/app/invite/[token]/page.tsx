@@ -19,18 +19,28 @@ export default async function InviteAcceptPage({
   })
 
   if (!session) {
+    // Only the token validation may legitimately throw (invalid/expired/used).
+    // Keep it — and nothing else — inside the try.
+    let invite: Awaited<ReturnType<typeof validateInviteToken>>
     try {
-      const invite = await validateInviteToken(token)
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, invite.email.toLowerCase()),
-      })
-      if (existingUser) {
-        redirect(`/login?callbackUrl=/invite/${token}`)
-      }
+      invite = await validateInviteToken(token)
     } catch {
-      // Invalid/expired/used token — fall through to register redirect;
-      // InvitePageClient will display the appropriate error after auth.
+      // Invalid/expired/used token — send to register; InvitePageClient will
+      // display the appropriate error after auth. This redirect must not be
+      // inside a nested try/catch or its NEXT_REDIRECT signal gets swallowed.
+      redirect(`/register?callbackUrl=/invite/${token}`)
     }
+
+    // Existing-account lookup runs outside the try so a NEXT_REDIRECT thrown
+    // by the redirect() calls below is never caught here.
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, invite.email.toLowerCase()),
+    })
+
+    if (existingUser) {
+      redirect(`/login?callbackUrl=/invite/${token}`)
+    }
+
     redirect(`/register?callbackUrl=/invite/${token}`)
   }
 
