@@ -24,10 +24,16 @@ export default async function InviteAcceptPage({
     let invite: Awaited<ReturnType<typeof validateInviteToken>>
     try {
       invite = await validateInviteToken(token)
-    } catch {
-      // Invalid/expired/used token — send to register; InvitePageClient will
-      // display the appropriate error after auth. This redirect must not be
-      // inside a nested try/catch or its NEXT_REDIRECT signal gets swallowed.
+    } catch (err) {
+      // An already-used token means this invite was already accepted, which
+      // requires an active session — so a registered account for this email is
+      // guaranteed to exist. Send them to log in rather than to register.
+      if (err instanceof Error && err.message === 'INVITE_ALREADY_USED') {
+        redirect(`/login?callbackUrl=/invite/${token}`)
+      }
+      // Invalid or expired token — send to register; InvitePageClient will
+      // display the appropriate error after auth. Neither redirect here is
+      // nested in a further try/catch, so its NEXT_REDIRECT is not swallowed.
       redirect(`/register?callbackUrl=/invite/${token}`)
     }
 
