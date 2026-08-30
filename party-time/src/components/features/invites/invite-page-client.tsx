@@ -155,7 +155,7 @@ export function InvitePageClient({ token }: { token: string }) {
           </div>
           <div className="space-y-3">
             <Button asChild className="w-full h-12 rounded-xl font-medium">
-              <Link href={`/register?invite=${token}`}>
+              <Link href={`/register?callbackUrl=/invite/${token}`}>
                 Create account to RSVP
               </Link>
             </Button>
@@ -164,7 +164,7 @@ export function InvitePageClient({ token }: { token: string }) {
               variant="outline"
               className="w-full h-12 rounded-xl"
             >
-              <Link href={`/login?invite=${token}`}>
+              <Link href={`/login?callbackUrl=/invite/${token}`}>
                 Already have an account? Sign in
               </Link>
             </Button>
