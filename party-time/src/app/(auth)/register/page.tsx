@@ -385,7 +385,7 @@ function RegisterForm() {
         <p className="text-center text-sm text-muted-foreground pb-6">
           Already have an account?{' '}
           <Link
-            href="/login"
+            href={searchParams.get('callbackUrl') ? `/login?callbackUrl=${searchParams.get('callbackUrl')}` : '/login'}
             className="text-primary font-medium hover:underline"
           >
             Sign in
