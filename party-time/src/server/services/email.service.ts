@@ -20,6 +20,27 @@ export async function sendInviteEmail({
     subject: `You are invited to ${eventTitle}`,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; margin-bottom: 24px;">
+          <tr>
+            <td
+              width="32"
+              height="32"
+              align="center"
+              valign="middle"
+              bgcolor="#534AB7"
+              style="width: 32px; height: 32px; background-color: #534AB7; border-radius: 8px; color: #ffffff; font-family: sans-serif; font-size: 14px; font-weight: bold; text-align: center; vertical-align: middle;"
+            >
+              P
+            </td>
+            <td
+              valign="middle"
+              style="padding-left: 8px; font-family: sans-serif; font-size: 18px; font-weight: 600; color: #111111; vertical-align: middle;"
+            >
+              Party Up
+            </td>
+          </tr>
+        </table>
+
         <h1 style="font-size: 24px; font-weight: bold;">
           You are invited! 🎉
         </h1>
@@ -50,6 +71,10 @@ export async function sendInviteEmail({
 
         <p style="margin-top: 16px; font-size: 12px; color: #999;">
           This link expires in 48 hours.
+        </p>
+
+        <p style="margin-top: 24px; font-size: 12px; color: #999;">
+          © Party Up
         </p>
       </div>
     `,
