@@ -2,7 +2,7 @@
 
 > Plan something special with your people.
 
-Party-Up is a full-stack web application for organising private events — birthdays, house parties, group trips. A host creates an event, sends time-limited invite links (with a QR code for in-person sharing), and manages the guest list; guests RSVP and, once admitted, see event details, upload photos, and post in the event's chat feed.
+Party-Up is a full-stack web application for organising private events — birthdays, house parties, group trips. A host creates an event, sends time-limited invite links (, and manages the guest list; guests RSVP and, once admitted, see event details, upload photos, and post in the event's chat feed.
 
 Built solo as a capstone project for the RNCP 6 *Concepteur·ice Développeur·se d'Applications* title (fiche RNCP 37873).
 
